@@ -179,7 +179,7 @@
         let nextDir = { x: 1, y: 0 };
         let lastTick = 0;
         let particles = [];
-        const TICK_RATE = 150; // User likes it "not too fast"
+        const TICK_RATE = 150; 
 
         // Auth Logic
         onAuthStateChanged(auth, (u) => {
@@ -193,7 +193,14 @@
 
         async function createLobby() {
             if (!user) return;
-            const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+            
+            // Generiere einen exakt 6-stelligen Code aus Großbuchstaben und Zahlen
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 6; i++) {
+                code += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            
             const ref = getLobbyRef(code);
             const initial = {
                 code,
@@ -215,7 +222,10 @@
 
         async function joinLobby(code) {
             code = code.toUpperCase();
-            if (code.length !== 6) return;
+            if (code.length !== 6) {
+                alert("Code must be 6 characters.");
+                return;
+            }
             const ref = getLobbyRef(code);
             currentLobby = code;
 
@@ -338,16 +348,11 @@
             const newY = me.y + myDir.y;
 
             let alive = true;
-            // Out of bounds
             if (newX < 0 || newX >= GRID_SIZE || newY < 0 || newY >= GRID_SIZE) alive = false;
             
-            // Wall/Trail collision
             Object.values(lobbyData.players).forEach(p => {
-                // Check trails
                 if (p.trail.some(t => t.x === newX && t.y === newY)) alive = false;
-                // Check heads (prevent same-tile overlap)
                 if (p.id !== user.uid && p.alive && p.x === newX && p.y === newY) alive = false;
-                // Check self trail head (safety)
                 if (me.trail.length > 0 && me.x === newX && me.y === newY) alive = false;
             });
 
@@ -355,7 +360,6 @@
             const updatedPlayers = { ...lobbyData.players };
             updatedPlayers[user.uid] = { ...me, x: newX, y: newY, trail: newTrail, alive, dir: myDir };
 
-            // Check if game should end (only host evaluates end condition)
             let newStatus = 'playing';
             if (user.uid === lobbyData.hostId) {
                 const currentlyAlive = Object.values(updatedPlayers).filter(p => p.alive);
@@ -391,7 +395,6 @@
         }
 
         function draw() {
-            // Background & Grid
             ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.strokeStyle = '#050515';
@@ -403,7 +406,6 @@
 
             if (!lobbyData) return;
 
-            // Trail Logic
             Object.values(lobbyData.players).forEach(p => {
                 ctx.strokeStyle = p.color;
                 ctx.lineWidth = 3;
@@ -421,7 +423,6 @@
                     ctx.stroke();
                 }
 
-                // Head rendering
                 if (p.alive) {
                     ctx.fillStyle = '#fff';
                     ctx.shadowBlur = 20;
@@ -430,7 +431,6 @@
                 ctx.shadowBlur = 0;
             });
 
-            // Particles
             particles = particles.filter(p => {
                 p.x += p.vx;
                 p.y += p.vy;
@@ -480,7 +480,6 @@
         document.getElementById('startBtn').onclick = async () => {
             if (user.uid !== lobbyData.hostId) return;
             
-            // Start countdown
             const ref = getLobbyRef(currentLobby);
             for (let i = 3; i >= 0; i--) {
                 await updateDoc(ref, { 
@@ -495,7 +494,6 @@
             const ref = getLobbyRef(currentLobby);
             if (user.uid === lobbyData.hostId) {
                 const ps = lobbyData.players;
-                // Reset players for new match
                 Object.keys(ps).forEach((id, idx) => {
                     ps[id].alive = true;
                     ps[id].trail = [];
