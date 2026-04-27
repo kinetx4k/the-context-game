@@ -83,6 +83,16 @@
             z-index: 20;
             position: relative;
         }
+
+        .code-display {
+            font-size: 24px;
+            letter-spacing: 4px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border: 2px dashed var(--neon-blue);
+            margin: 10px 0;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4">
@@ -110,9 +120,14 @@
         </div>
 
         <!-- Lobby -->
-        <div id="lobby" class="hidden flex flex-col items-center gap-6 w-full">
-            <h2 class="text-xl">SECTOR: <span id="lobbyCodeLabel" class="neon-text"></span></h2>
-            <div class="pixel-panel p-6 w-full min-h-[200px]">
+        <div id="lobby" class="hidden flex flex-col items-center gap-6 w-full text-center">
+            <h2 class="text-xl uppercase">Sector Link Active</h2>
+            <p class="text-[8px] text-gray-400 uppercase">Share this code with your opponent:</p>
+            
+            <div id="lobbyCodeLabel" class="code-display neon-text" title="Click to copy">------</div>
+            <p id="copyStatus" class="text-[7px] text-cyan-600 h-2 uppercase"></p>
+
+            <div class="pixel-panel p-6 w-full min-h-[160px]">
                 <h3 class="text-[8px] mb-4 text-gray-500 uppercase tracking-widest">Connected Programs</h3>
                 <div id="playerList" class="flex flex-col gap-4 text-[10px]">
                     <!-- Players -->
@@ -150,6 +165,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Hidden input for copying -->
+    <input type="text" id="copyBuffer" style="position:absolute; left:-9999px;">
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -194,7 +212,6 @@
         async function createLobby() {
             if (!user) return;
             
-            // Generiere einen exakt 6-stelligen Code aus Großbuchstaben und Zahlen
             const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             let code = '';
             for (let i = 0; i < 6; i++) {
@@ -239,7 +256,6 @@
                 handleGameState();
             }, (err) => console.error("Snapshot error:", err));
 
-            // Join existing lobby
             const snap = await getDoc(ref);
             if (snap.exists()) {
                 const data = snap.data();
@@ -461,6 +477,17 @@
         document.getElementById('joinBtn').onclick = () => {
             const val = document.getElementById('lobbyInput').value.trim();
             if (val) joinLobby(val);
+        };
+
+        document.getElementById('lobbyCodeLabel').onclick = () => {
+            const code = document.getElementById('lobbyCodeLabel').innerText;
+            const buffer = document.getElementById('copyBuffer');
+            const status = document.getElementById('copyStatus');
+            buffer.value = code;
+            buffer.select();
+            document.execCommand('copy');
+            status.innerText = "COPIED TO CLIPBOARD!";
+            setTimeout(() => status.innerText = "", 2000);
         };
 
         document.getElementById('leaveBtn').onclick = async () => {
