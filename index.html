@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tron Multiplayer Pro</title>
+    <title>Tron Solo Frontier</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -41,7 +41,7 @@
         .btn {
             background: #1a1a3a;
             color: white;
-            padding: 14px;
+            padding: 18px;
             border-bottom: 4px solid #000;
             transition: all 0.1s;
             cursor: pointer;
@@ -68,7 +68,6 @@
             color: var(--neon-pink);
         }
 
-        /* Scanline effect */
         .scanlines {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -83,16 +82,6 @@
             z-index: 20;
             position: relative;
         }
-
-        .code-display {
-            font-size: 24px;
-            letter-spacing: 4px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border: 2px dashed var(--neon-blue);
-            margin: 10px 0;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4">
@@ -100,54 +89,29 @@
 
     <div id="ui-layer" class="w-full max-w-lg flex flex-col items-center">
         
-        <!-- Menu -->
+        <!-- Start Menu -->
         <div id="menu" class="flex flex-col items-center gap-8 w-full">
             <div class="text-center">
                 <h1 class="text-4xl neon-text mb-2 italic">TRON</h1>
-                <p class="text-[10px] tracking-widest text-gray-500">DIGITAL FRONTIER MULTIPLAYER</p>
+                <p class="text-[10px] tracking-widest text-gray-500 font-bold uppercase">Solo Core Frontier</p>
             </div>
             
-            <div class="pixel-panel p-8 w-full flex flex-col gap-6">
-                <div class="flex flex-col gap-2">
-                    <label class="text-[8px] text-gray-400">ACCESS CODE</label>
-                    <input id="lobbyInput" type="text" placeholder="------" maxlength="6" class="bg-black border-2 border-[#1a1a3a] p-4 text-center text-sm outline-none focus:border-cyan-400 uppercase tracking-widest text-white">
-                </div>
-                <div class="flex flex-col gap-3">
-                    <button id="joinBtn" class="btn text-[10px]">Initialize Link</button>
-                    <button id="createBtn" class="btn text-[10px] bg-gray-900">Create New Sector</button>
+            <div class="pixel-panel p-10 w-full flex flex-col gap-6">
+                <button id="startBtn" class="btn w-full text-xs neon-text font-bold">Start Simulation</button>
+                <div class="text-[7px] text-center text-gray-600 leading-relaxed uppercase">
+                    Defeat the AI Program<br>Avoid all Light Trails<br>Controls: WASD or Arrows
                 </div>
             </div>
         </div>
 
-        <!-- Lobby -->
-        <div id="lobby" class="hidden flex flex-col items-center gap-6 w-full text-center">
-            <h2 class="text-xl uppercase">Sector Link Active</h2>
-            <p class="text-[8px] text-gray-400 uppercase">Share this code with your opponent:</p>
-            
-            <div id="lobbyCodeLabel" class="code-display neon-text" title="Click to copy">------</div>
-            <p id="copyStatus" class="text-[7px] text-cyan-600 h-2 uppercase"></p>
-
-            <div class="pixel-panel p-6 w-full min-h-[160px]">
-                <h3 class="text-[8px] mb-4 text-gray-500 uppercase tracking-widest">Connected Programs</h3>
-                <div id="playerList" class="flex flex-col gap-4 text-[10px]">
-                    <!-- Players -->
-                </div>
-            </div>
-            <div class="flex flex-col gap-3 w-full">
-                <button id="startBtn" class="btn w-full text-xs hidden neon-text">Begin Simulation</button>
-                <button id="leaveBtn" class="btn w-full text-xs bg-red-900/20 text-red-500 border-red-900">Abort Link</button>
-            </div>
-        </div>
-
-        <!-- Game UI -->
+        <!-- Game Screen -->
         <div id="gameUI" class="hidden flex flex-col items-center gap-4">
             <div class="flex justify-between w-full text-[8px] text-gray-400 px-2 uppercase tracking-tighter">
                 <div class="flex flex-col gap-1">
-                    <span>Sector: <span id="gameCodeLabel" class="text-white"></span></span>
-                    <span id="gameStatusLabel" class="neon-text">Awaiting Input...</span>
+                    <span id="gameStatusLabel" class="neon-text font-bold">System Active</span>
                 </div>
                 <div class="text-right">
-                    <span>Latency: <span id="pingLabel" class="text-green-500">LOW</span></span>
+                    <span>Level: <span id="levelLabel" class="text-white">01</span></span>
                 </div>
             </div>
             <div class="relative">
@@ -156,263 +120,196 @@
             </div>
         </div>
 
-        <!-- Result Screen -->
+        <!-- End Screen -->
         <div id="resultScreen" class="hidden fixed inset-0 flex items-center justify-center bg-black/80 z-[100] p-6">
             <div class="pixel-panel p-10 max-w-sm w-full text-center">
-                <h2 id="winnerText" class="text-2xl mb-6 neon-text">VICTORY</h2>
-                <p id="winnerSub" class="text-[10px] text-gray-500 mb-8 leading-relaxed">Program has successfully out-maneuvered the competition.</p>
-                <button id="backToLobbyBtn" class="btn w-full text-[10px]">Return to Sector</button>
+                <h2 id="winnerText" class="text-2xl mb-6">VICTORY</h2>
+                <p id="winnerSub" class="text-[10px] text-gray-400 mb-8 leading-relaxed"></p>
+                <button id="restartBtn" class="btn w-full text-[10px]">Restart Core</button>
             </div>
         </div>
     </div>
 
-    <!-- Hidden input for copying -->
-    <input type="text" id="copyBuffer" style="position:absolute; left:-9999px;">
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, updateDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Firebase Configuration
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'tron-ultimate-multiplayer';
-
-        // Constants
+    <script>
+        // Spiel-Konfiguration
         const TILE_SIZE = 12;
         const GRID_SIZE = 40;
+        const TICK_RATE_START = 140; // Moderate Geschwindigkeit
+        
         const canvas = document.getElementById('stage');
         const ctx = canvas.getContext('2d');
         canvas.width = GRID_SIZE * TILE_SIZE;
         canvas.height = GRID_SIZE * TILE_SIZE;
 
-        // Game State
-        let user = null;
-        let currentLobby = null;
-        let lobbyData = null;
-        let myDir = { x: 1, y: 0 };
-        let nextDir = { x: 1, y: 0 };
+        // Spiel-Status
+        let gameActive = false;
+        let level = 1;
+        let tickRate = TICK_RATE_START;
         let lastTick = 0;
         let particles = [];
-        const TICK_RATE = 150; 
+        
+        let player = {
+            id: 'player',
+            x: 5, y: 20,
+            dir: { x: 1, y: 0 },
+            nextDir: { x: 1, y: 0 },
+            alive: true,
+            trail: [],
+            color: '#00f2ff'
+        };
 
-        // Auth Logic
-        onAuthStateChanged(auth, (u) => {
-            user = u;
-            if (!user) signInAnonymously(auth);
-        });
+        let ai = {
+            id: 'ai',
+            x: 34, y: 20,
+            dir: { x: -1, y: 0 },
+            nextDir: { x: -1, y: 0 },
+            alive: true,
+            trail: [],
+            color: '#ff00ea'
+        };
 
-        const getLobbyRef = (code) => doc(db, 'artifacts', appId, 'public', 'data', 'lobbies', code);
-
-        // --- Functions ---
-
-        async function createLobby() {
-            if (!user) return;
-            
-            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let code = '';
-            for (let i = 0; i < 6; i++) {
-                code += characters.charAt(Math.floor(Math.random() * characters.length));
-            }
-            
-            const ref = getLobbyRef(code);
-            const initial = {
-                code,
-                hostId: user.uid,
-                status: 'waiting',
-                countdown: 0,
-                players: {
-                    [user.uid]: { 
-                        id: user.uid, x: 5, y: 20, 
-                        dir: { x: 1, y: 0 }, 
-                        alive: true, trail: [], 
-                        color: '#00f2ff', name: 'USER_1' 
-                    }
-                }
-            };
-            await setDoc(ref, initial);
-            joinLobby(code);
-        }
-
-        async function joinLobby(code) {
-            code = code.toUpperCase();
-            if (code.length !== 6) {
-                alert("Code must be 6 characters.");
-                return;
-            }
-            const ref = getLobbyRef(code);
-            currentLobby = code;
-
-            onSnapshot(ref, (snap) => {
-                if (!snap.exists()) {
-                    window.location.reload();
-                    return;
-                }
-                lobbyData = snap.data();
-                renderLobby();
-                handleGameState();
-            }, (err) => console.error("Snapshot error:", err));
-
-            const snap = await getDoc(ref);
-            if (snap.exists()) {
-                const data = snap.data();
-                if (data.status !== 'waiting' && !data.players[user.uid]) {
-                    alert("Simulation in progress. Connection refused.");
-                    return;
-                }
-                if (!data.players[user.uid]) {
-                    const ps = data.players;
-                    const pCount = Object.keys(ps).length;
-                    ps[user.uid] = { 
-                        id: user.uid, x: 34, y: 20, 
-                        dir: { x: -1, y: 0 }, 
-                        alive: true, trail: [], 
-                        color: pCount === 1 ? '#ff00ea' : (pCount === 2 ? '#ffcc00' : '#00ff00'),
-                        name: `USER_${pCount + 1}` 
-                    };
-                    await updateDoc(ref, { players: ps });
-                }
-            } else {
-                alert("Sector code invalid.");
-                return;
-            }
-
-            document.getElementById('menu').classList.add('hidden');
-            document.getElementById('lobby').classList.remove('hidden');
-            document.getElementById('lobbyCodeLabel').innerText = code;
-        }
-
-        function renderLobby() {
-            const list = document.getElementById('playerList');
-            list.innerHTML = '';
-            Object.values(lobbyData.players).forEach(p => {
-                const div = document.createElement('div');
-                div.className = "flex items-center gap-4";
-                div.innerHTML = `
-                    <div class="w-3 h-3" style="background:${p.color}; box-shadow: 0 0 10px ${p.color}"></div>
-                    <span class="${p.id === user.uid ? 'text-white' : 'text-gray-400'}">${p.name}</span>
-                    ${p.id === lobbyData.hostId ? '<span class="text-[6px] bg-cyan-900 px-1">HOST</span>' : ''}
-                `;
-                list.appendChild(div);
-            });
-            
-            const startBtn = document.getElementById('startBtn');
-            if (user.uid === lobbyData.hostId && Object.keys(lobbyData.players).length >= 1) {
-                startBtn.classList.remove('hidden');
-            } else {
-                startBtn.classList.add('hidden');
-            }
-        }
-
-        function handleGameState() {
-            const countdownEl = document.getElementById('countdown');
-            
-            if (lobbyData.status === 'countdown') {
-                document.getElementById('lobby').classList.add('hidden');
-                document.getElementById('gameUI').classList.remove('hidden');
-                document.getElementById('gameCodeLabel').innerText = currentLobby;
-                countdownEl.classList.remove('hidden');
-                countdownEl.innerText = lobbyData.countdown;
-            } else if (lobbyData.status === 'playing') {
-                document.getElementById('lobby').classList.add('hidden');
-                document.getElementById('gameUI').classList.remove('hidden');
-                countdownEl.classList.add('hidden');
-                document.getElementById('gameStatusLabel').innerText = "ENGAGED";
-                requestAnimationFrame(gameLoop);
-            } else if (lobbyData.status === 'finished') {
-                showResults();
-            }
-        }
-
-        function showResults() {
-            const screen = document.getElementById('resultScreen');
-            const winnerText = document.getElementById('winnerText');
-            const alivePlayers = Object.values(lobbyData.players).filter(p => p.alive);
-            
-            screen.classList.remove('hidden');
-            if (alivePlayers.length === 1) {
-                const winner = alivePlayers[0];
-                winnerText.innerText = winner.id === user.uid ? "VICTORY" : "DEFEAT";
-                winnerText.className = winner.id === user.uid ? "text-2xl mb-6 neon-text" : "text-2xl mb-6 neon-text-pink";
-                document.getElementById('winnerSub').innerText = `${winner.name} IS THE LAST PROGRAM REMAINING.`;
-            } else {
-                winnerText.innerText = "DRAW";
-                document.getElementById('winnerSub').innerText = "NO PROGRAMS SURVIVED THE COLLISION.";
-            }
-        }
-
-        // --- Logic Engine ---
-
+        // Steuerung
         window.addEventListener('keydown', (e) => {
             const key = e.key.toLowerCase();
-            if (key === 'w' || e.key === 'ArrowUp') { if (myDir.y === 0) nextDir = { x: 0, y: -1 }; }
-            if (key === 's' || e.key === 'ArrowDown') { if (myDir.y === 0) nextDir = { x: 0, y: 1 }; }
-            if (key === 'a' || e.key === 'ArrowLeft') { if (myDir.x === 0) nextDir = { x: -1, y: 0 }; }
-            if (key === 'd' || e.key === 'ArrowRight') { if (myDir.x === 0) nextDir = { x: 1, y: 0 }; }
+            if (key === 'w' || e.key === 'ArrowUp') { if (player.dir.y === 0) player.nextDir = { x: 0, y: -1 }; }
+            if (key === 's' || e.key === 'ArrowDown') { if (player.dir.y === 0) player.nextDir = { x: 0, y: 1 }; }
+            if (key === 'a' || e.key === 'ArrowLeft') { if (player.dir.x === 0) player.nextDir = { x: -1, y: 0 }; }
+            if (key === 'd' || e.key === 'ArrowRight') { if (player.dir.x === 0) player.nextDir = { x: 1, y: 0 }; }
         });
 
-        async function tick() {
-            if (!lobbyData || lobbyData.status !== 'playing') return;
-            const me = lobbyData.players[user.uid];
-            if (!me || !me.alive) return;
+        function resetSimulation() {
+            player.x = 5; player.y = 20;
+            player.dir = { x: 1, y: 0 };
+            player.nextDir = { x: 1, y: 0 };
+            player.alive = true;
+            player.trail = [];
 
-            myDir = nextDir;
-            const newX = me.x + myDir.x;
-            const newY = me.y + myDir.y;
-
-            let alive = true;
-            if (newX < 0 || newX >= GRID_SIZE || newY < 0 || newY >= GRID_SIZE) alive = false;
+            ai.x = 34; ai.y = 20;
+            ai.dir = { x: -1, y: 0 };
+            ai.nextDir = { x: -1, y: 0 };
+            ai.alive = true;
+            ai.trail = [];
             
-            Object.values(lobbyData.players).forEach(p => {
-                if (p.trail.some(t => t.x === newX && t.y === newY)) alive = false;
-                if (p.id !== user.uid && p.alive && p.x === newX && p.y === newY) alive = false;
-                if (me.trail.length > 0 && me.x === newX && me.y === newY) alive = false;
-            });
+            particles = [];
+            tickRate = Math.max(80, TICK_RATE_START - (level * 5));
+        }
 
-            const newTrail = [...me.trail, { x: me.x, y: me.y }];
-            const updatedPlayers = { ...lobbyData.players };
-            updatedPlayers[user.uid] = { ...me, x: newX, y: newY, trail: newTrail, alive, dir: myDir };
+        // Einfache KI-Logik
+        function updateAI() {
+            if (!ai.alive) return;
 
-            let newStatus = 'playing';
-            if (user.uid === lobbyData.hostId) {
-                const currentlyAlive = Object.values(updatedPlayers).filter(p => p.alive);
-                if (currentlyAlive.length <= 1 && Object.keys(updatedPlayers).length > 1) {
-                    newStatus = 'finished';
-                } else if (currentlyAlive.length === 0) {
-                    newStatus = 'finished';
+            const checkX = ai.x + ai.dir.x;
+            const checkY = ai.y + ai.dir.y;
+
+            // Prüfen, ob der nächste Schritt gefährlich ist
+            if (isCollision(checkX, checkY)) {
+                const possibleDirs = [
+                    { x: 0, y: -1 }, { x: 0, y: 1 }, 
+                    { x: -1, y: 0 }, { x: 1, y: 0 }
+                ];
+                
+                // Nur Richtungen wählen, die nicht direkt rückwärts sind
+                const safeDirs = possibleDirs.filter(d => {
+                    if (d.x === -ai.dir.x && d.y === -ai.dir.y) return false;
+                    return !isCollision(ai.x + d.x, ai.y + d.y);
+                });
+
+                if (safeDirs.length > 0) {
+                    ai.dir = safeDirs[Math.floor(Math.random() * safeDirs.length)];
                 }
             }
+        }
 
-            if (!alive) {
-                createExplosion(me.x * TILE_SIZE, me.y * TILE_SIZE, me.color);
-                document.getElementById('gameStatusLabel').innerText = "DEREZZED";
-            }
-
-            await updateDoc(getLobbyRef(currentLobby), { 
-                players: updatedPlayers,
-                status: newStatus 
-            });
+        function isCollision(x, y) {
+            // Wände
+            if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return true;
+            // Trails
+            if (player.trail.some(t => t.x === x && t.y === y)) return true;
+            if (ai.trail.some(t => t.x === x && t.y === y)) return true;
+            // Köpfe
+            if (player.x === x && player.y === y) return true;
+            if (ai.x === x && ai.y === y) return true;
+            return false;
         }
 
         function createExplosion(x, y, color) {
-            for (let i = 0; i < 20; i++) {
+            for (let i = 0; i < 25; i++) {
                 particles.push({
                     x: x + TILE_SIZE / 2,
                     y: y + TILE_SIZE / 2,
-                    vx: (Math.random() - 0.5) * 6,
-                    vy: (Math.random() - 0.5) * 6,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
                     life: 1.0,
                     color: color
                 });
             }
         }
 
+        async function tick() {
+            if (!gameActive) return;
+
+            // Spieler bewegen
+            player.dir = player.nextDir;
+            const pNextX = player.x + player.dir.x;
+            const pNextY = player.y + player.dir.y;
+
+            if (isCollision(pNextX, pNextY)) {
+                player.alive = false;
+                createExplosion(player.x * TILE_SIZE, player.y * TILE_SIZE, player.color);
+                endSimulation();
+                return;
+            }
+
+            player.trail.push({ x: player.x, y: player.y });
+            player.x = pNextX;
+            player.y = pNextY;
+
+            // KI bewegen
+            updateAI();
+            const aiNextX = ai.x + ai.dir.x;
+            const aiNextY = ai.y + ai.dir.y;
+
+            if (isCollision(aiNextX, aiNextY)) {
+                ai.alive = false;
+                createExplosion(ai.x * TILE_SIZE, ai.y * TILE_SIZE, ai.color);
+                endSimulation();
+                return;
+            }
+
+            ai.trail.push({ x: ai.x, y: ai.y });
+            ai.x = aiNextX;
+            ai.y = aiNextY;
+        }
+
+        function endSimulation() {
+            gameActive = false;
+            const result = document.getElementById('resultScreen');
+            const title = document.getElementById('winnerText');
+            const sub = document.getElementById('winnerSub');
+            
+            result.classList.remove('hidden');
+            if (!player.alive && !ai.alive) {
+                title.innerText = "DRAW";
+                title.className = "text-2xl mb-6 text-gray-400";
+                sub.innerText = "BOTH PROGRAMS DEREZZED SIMULTANEOUSLY.";
+            } else if (!player.alive) {
+                title.innerText = "DEFEAT";
+                title.className = "text-2xl mb-6 neon-text-pink";
+                sub.innerText = "YOUR PROGRAM HAS BEEN OVERWRITTEN BY THE AI.";
+            } else {
+                title.innerText = "VICTORY";
+                title.className = "text-2xl mb-6 neon-text";
+                sub.innerText = "AI PROGRAM DEREZZED. SECTOR SECURED.";
+                level++;
+                document.getElementById('levelLabel').innerText = level.toString().padStart(2, '0');
+            }
+        }
+
         function draw() {
             ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Raster zeichnen
             ctx.strokeStyle = '#050515';
             ctx.lineWidth = 1;
             for (let i = 0; i < GRID_SIZE; i++) {
@@ -420,12 +317,11 @@
                 ctx.beginPath(); ctx.moveTo(0, i * TILE_SIZE); ctx.lineTo(canvas.width, i * TILE_SIZE); ctx.stroke();
             }
 
-            if (!lobbyData) return;
-
-            Object.values(lobbyData.players).forEach(p => {
+            // Trails und Köpfe zeichnen
+            [player, ai].forEach(p => {
                 ctx.strokeStyle = p.color;
-                ctx.lineWidth = 3;
-                ctx.lineCap = 'round';
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'square';
                 ctx.shadowBlur = 15;
                 ctx.shadowColor = p.color;
 
@@ -447,6 +343,7 @@
                 ctx.shadowBlur = 0;
             });
 
+            // Partikel zeichnen
             particles = particles.filter(p => {
                 p.x += p.vx;
                 p.y += p.vy;
@@ -460,79 +357,27 @@
         }
 
         function gameLoop(now) {
-            if (now - lastTick > TICK_RATE) {
+            if (gameActive && now - lastTick > tickRate) {
                 tick();
                 lastTick = now;
             }
             draw();
-            if (lobbyData && (lobbyData.status === 'playing' || lobbyData.status === 'finished')) {
-                requestAnimationFrame(gameLoop);
-            }
+            requestAnimationFrame(gameLoop);
         }
 
-        // --- Interface Listeners ---
-
-        document.getElementById('createBtn').onclick = createLobby;
-        
-        document.getElementById('joinBtn').onclick = () => {
-            const val = document.getElementById('lobbyInput').value.trim();
-            if (val) joinLobby(val);
+        // UI Event-Handler
+        document.getElementById('startBtn').onclick = () => {
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('gameUI').classList.remove('hidden');
+            resetSimulation();
+            gameActive = true;
+            requestAnimationFrame(gameLoop);
         };
 
-        document.getElementById('lobbyCodeLabel').onclick = () => {
-            const code = document.getElementById('lobbyCodeLabel').innerText;
-            const buffer = document.getElementById('copyBuffer');
-            const status = document.getElementById('copyStatus');
-            buffer.value = code;
-            buffer.select();
-            document.execCommand('copy');
-            status.innerText = "COPIED TO CLIPBOARD!";
-            setTimeout(() => status.innerText = "", 2000);
-        };
-
-        document.getElementById('leaveBtn').onclick = async () => {
-            if (currentLobby && user) {
-                const ref = getLobbyRef(currentLobby);
-                const snap = await getDoc(ref);
-                if (snap.exists()) {
-                    const ps = snap.data().players;
-                    delete ps[user.uid];
-                    if (Object.keys(ps).length === 0) await deleteDoc(ref);
-                    else await updateDoc(ref, { players: ps });
-                }
-            }
-            window.location.reload();
-        };
-
-        document.getElementById('startBtn').onclick = async () => {
-            if (user.uid !== lobbyData.hostId) return;
-            
-            const ref = getLobbyRef(currentLobby);
-            for (let i = 3; i >= 0; i--) {
-                await updateDoc(ref, { 
-                    status: i === 0 ? 'playing' : 'countdown', 
-                    countdown: i 
-                });
-                if (i > 0) await new Promise(r => setTimeout(r, 1000));
-            }
-        };
-
-        document.getElementById('backToLobbyBtn').onclick = async () => {
-            const ref = getLobbyRef(currentLobby);
-            if (user.uid === lobbyData.hostId) {
-                const ps = lobbyData.players;
-                Object.keys(ps).forEach((id, idx) => {
-                    ps[id].alive = true;
-                    ps[id].trail = [];
-                    ps[id].x = idx === 0 ? 5 : 34;
-                    ps[id].y = 20;
-                    ps[id].dir = idx === 0 ? {x:1,y:0} : {x:-1,y:0};
-                });
-                await updateDoc(ref, { status: 'waiting', players: ps });
-            }
+        document.getElementById('restartBtn').onclick = () => {
             document.getElementById('resultScreen').classList.add('hidden');
-            document.getElementById('gameUI').classList.add('hidden');
-            document.getElementById('lobby').classList.remove('hidden');
+            resetSimulation();
+            gameActive = true;
         };
 
     </script>
