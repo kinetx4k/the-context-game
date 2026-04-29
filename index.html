@@ -95,6 +95,7 @@
         let currentLevel = 0;
         let isDead = false;
         let gameStarted = false;
+        let levelCleared = false; // New state to track if goal was reached
         let mousePos = { x: 0, y: 0 };
         let splats = []; // Stores death positions
         let walls = []; // Invisible obstacles
@@ -229,11 +230,29 @@
             messageBox.classList.remove('hidden');
         }
 
+        /**
+         * Specialized logic for completing a level.
+         * Shows the hidden path for a short duration.
+         */
+        function handleLevelClear() {
+            levelCleared = true;
+            isDead = true; 
+            messageBox.innerHTML = "<h2>Level Complete!</h2><p>The path is revealed! Return to the start (top left) for the next challenge.</p>";
+            messageBox.classList.remove('hidden');
+        }
+
         function update() {
             // If dead, user must move back to the start zone (top left)
             if (isDead) {
                 const distToStart = Math.hypot(mousePos.x - startZone.x, mousePos.y - startZone.y);
                 if (distToStart < startZone.radius) {
+                    // Transition to next level only after returning to start
+                    if (levelCleared) {
+                        currentLevel++;
+                        splats = []; 
+                        setupLevel();
+                        levelCleared = false;
+                    }
                     isDead = false;
                     messageBox.classList.add('hidden');
                     if (!gameStarted) gameStarted = true;
@@ -242,11 +261,7 @@
                 if (checkCollision(mousePos.x, mousePos.y)) {
                     handleDeath();
                 } else if (checkGoal(mousePos.x, mousePos.y)) {
-                    currentLevel++;
-                    splats = []; 
-                    setupLevel();
-                    resetMouse();
-                    messageBox.innerHTML = "<h2>Level Complete!</h2><p>Move to the start (top left) for the next level.</p>";
+                    handleLevelClear();
                 }
             }
         }
@@ -301,6 +316,14 @@
                 if (isDead) {
                     drawArrow(mousePos.x, mousePos.y, startZone.x, startZone.y);
                 }
+            }
+
+            // Draw revealed walls if the level is cleared
+            if (levelCleared) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.15)'; // Faint reveal of the path
+                walls.forEach(w => {
+                    ctx.fillRect(w.x, w.y, w.w, w.h);
+                });
             }
 
             // Draw Splats (Bloodstains)
