@@ -82,7 +82,7 @@
         <div id="tutorial">
             <h2>Welcome to the Darkness</h2>
             <p>Move your mouse to the <strong>green dot</strong>.</p>
-            <p>The maze is random. Sonar has a <strong>10s cooldown</strong>.</p>
+            <p>High-speed movement protection active.</p>
             <p style="color: #4CAF50;">Return to the top-left circle to start.</p>
         </div>
     </div>
@@ -101,6 +101,7 @@
         let gameStarted = false;
         let levelCleared = false; 
         let mousePos = { x: 0, y: 0 };
+        let lastProcessedPos = { x: 0, y: 0 }; // Speicher für die letzte sichere Position
         let splats = []; 
         let walls = []; 
         let goal = { x: 0, y: 0, radius: 15 };
@@ -112,16 +113,13 @@
         let sonarCooldown = 0;
         const SONAR_MAX_RADIUS = 1000;
         const SONAR_SPEED = 10;
-        const SONAR_COOLDOWN_TIME = 600; // 10 seconds at 60fps
+        const SONAR_COOLDOWN_TIME = 600; 
         let wallAlphaState = [];
 
         const SPLAT_RADIUS = 8;
         const GOAL_COLOR = '#00FF00';
         const SPLAT_COLOR = 'rgba(200, 0, 0, 0.7)';
 
-        /**
-         * GENERATOR FÜR ZUFÄLLIGE WEGE
-         */
         class MazeGenerator {
             constructor(cols, rows) {
                 this.cols = cols;
@@ -208,6 +206,29 @@
             goal.y = canvas.height - 50;
         }
 
+        /**
+         * KOMPLEXE PFAD-KOLLISIONSPRÜFUNG
+         * Prüft alle Punkte zwischen A und B, damit man nicht durch Wände springt.
+         */
+        function checkPathCollision(x1, y1, x2, y2) {
+            const distance = Math.hypot(x2 - x1, y2 - y1);
+            // Wir prüfen alle 4 Pixel entlang des Weges (kleiner als die Wandstärke)
+            const steps = Math.ceil(distance / 4);
+            
+            for (let i = 0; i <= steps; i++) {
+                const t = i / steps;
+                const checkX = x1 + (x2 - x1) * t;
+                const checkY = y1 + (y2 - y1) * t;
+
+                // Einzelne Punkt-Kollision
+                const hit = walls.some(w => checkX > w.x && checkX < w.x + w.w && checkY > w.y && checkY < w.y + w.h) 
+                          || checkX < 2 || checkX > canvas.width-2 || checkY < 2 || checkY > canvas.height-2;
+                
+                if (hit) return { hit: true, x: checkX, y: checkY };
+            }
+            return { hit: false };
+        }
+
         function drawArrow(fX, fY, tX, tY) {
             const len = 15;
             const dx = tX - fX, dy = tY - fY;
@@ -245,16 +266,22 @@
                 if (Math.hypot(mousePos.x - startZone.x, mousePos.y - startZone.y) < startZone.radius) {
                     if (levelCleared) { currentLevel++; splats = []; setupLevel(); levelCleared = false; }
                     isDead = false; messageBox.classList.add('hidden'); gameStarted = true;
+                    lastProcessedPos = { ...mousePos };
                 }
             } else if (gameStarted) {
-                const hit = walls.some(w => mousePos.x > w.x && mousePos.x < w.x + w.w && mousePos.y > w.y && mousePos.y < w.y + w.h) 
-                          || mousePos.x < 2 || mousePos.x > canvas.width-2 || mousePos.y < 2 || mousePos.y > canvas.height-2;
-                if (hit) {
-                    splats.push({ x: mousePos.x, y: mousePos.y, r: SPLAT_RADIUS + Math.random() * 5 });
-                    isDead = true; messageBox.innerHTML = "<h2>You Died!</h2><p>Return to start.</p>"; messageBox.classList.remove('hidden');
+                // Nutze die Pfad-Prüfung statt nur den aktuellen Punkt
+                const collision = checkPathCollision(lastProcessedPos.x, lastProcessedPos.y, mousePos.x, mousePos.y);
+                
+                if (collision.hit) {
+                    splats.push({ x: collision.x, y: collision.y, r: SPLAT_RADIUS + Math.random() * 5 });
+                    isDead = true; 
+                    messageBox.innerHTML = "<h2>You Died!</h2><p>Too fast or hit a wall.</p><p>Return to start.</p>"; 
+                    messageBox.classList.remove('hidden');
                 } else if (Math.hypot(mousePos.x - goal.x, mousePos.y - goal.y) < goal.radius) {
                     levelCleared = true; isDead = true; messageBox.innerHTML = "<h2>Level Clear!</h2><p>Return to start.</p>"; messageBox.classList.remove('hidden');
                 }
+                // Aktualisiere die letzte sichere Position
+                lastProcessedPos = { ...mousePos };
             }
         }
 
@@ -303,7 +330,10 @@
             requestAnimationFrame(draw);
         }
 
-        window.addEventListener('mousemove', (e) => { mousePos.x = e.clientX; mousePos.y = e.clientY; });
+        window.addEventListener('mousemove', (e) => { 
+            mousePos.x = e.clientX; 
+            mousePos.y = e.clientY; 
+        });
         window.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             if (!isDead && sonarCooldown === 0) { sonarActive = true; sonarRadius = 0; sonarCooldown = SONAR_COOLDOWN_TIME; }
