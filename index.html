@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dark Maze - Procedural Persistence</title>
+    <title>Dark Maze - Procedural</title>
     <style>
         body, html {
             margin: 0;
@@ -82,7 +82,6 @@
 
     <div id="ui-layer">
         <div id="level-indicator">Level 1</div>
-        <div id="status-text" style="font-size: 0.8rem; color: #666; margin-top: 5px;">Saving progress...</div>
     </div>
 
     <div id="ability-bar"></div>
@@ -95,17 +94,6 @@
     <canvas id="gameCanvas"></canvas>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Firebase Setup
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'dark-maze-procedural';
-
         // Constants & Config
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -116,8 +104,6 @@
         const GOAL_COLOR = '#00FF00';
 
         // Game State
-        let user = null;
-        let highestUnlocked = 1;
         let currentLevel = 1;
         let isDead = true;
         let gameStarted = false;
@@ -203,35 +189,6 @@
             });
         }
 
-        // Persistence Logic
-        async function saveProgress(level) {
-            if (!user) return;
-            const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'progress', 'main');
-            try {
-                if (level > highestUnlocked) {
-                    highestUnlocked = level;
-                    await setDoc(docRef, { highestUnlocked }, { merge: true });
-                    document.getElementById('status-text').innerText = "Progress saved.";
-                }
-            } catch (e) {
-                console.error("Save error", e);
-            }
-        }
-
-        async function loadProgress() {
-            if (!user) return;
-            const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'progress', 'main');
-            try {
-                const snap = await getDoc(docRef);
-                if (snap.exists()) {
-                    highestUnlocked = snap.data().highestUnlocked || 1;
-                    currentLevel = highestUnlocked;
-                }
-            } catch (e) {
-                console.error("Load error", e);
-            }
-        }
-
         function setupLevel() {
             document.getElementById('level-indicator').innerText = `Level ${currentLevel}`;
             walls = generateMaze(currentLevel);
@@ -297,7 +254,6 @@
                 if (dist < startZone.radius) {
                     if (levelCleared) {
                         currentLevel++;
-                        saveProgress(currentLevel);
                         setupLevel();
                     }
                     isDead = false;
@@ -407,23 +363,13 @@
             setupLevel();
         });
 
-        (async () => {
-            document.getElementById('status-text').innerText = "Connecting...";
-            try {
-                const cred = await signInAnonymously(auth);
-                user = cred.user;
-                await loadProgress();
-                document.getElementById('status-text').innerText = "Sync active.";
-            } catch (err) {
-                console.error("Auth error", err);
-                document.getElementById('status-text').innerText = "Offline mode.";
-            }
-            
+        // Initialize Start
+        window.onload = () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             setupLevel();
             draw();
-        })();
+        };
 
     </script>
 </body>
