@@ -447,50 +447,50 @@
                 // Basis-Eier 0 bis 4 mit Gewichten die exakt auf 10.000 aufsummieren für schöne Kommazahlen
                 if (index === 0) {
                     return new EggModel('egg_basic', 'Starter Egg', 49.99, 'Basic pets. Hatch Time: 3s.', 3, [
-                        new PetModel('e0_p1', 'Field Mouse', '🐭', 5499, 'Common', 5),
-                        new PetModel('e0_p2', 'Brown Dog', '🐶', 3001, 'Common', 12),
-                        new PetModel('e0_p3', 'Stray Cat', '🐱', 1050, 'Uncommon', 28),
-                        new PetModel('e0_p4', 'Pigeon', '🐦', 400, 'Uncommon', 55),
-                        new PetModel('e0_p5', 'Goldfish', '🐟', 50, 'Rare', 150)
+                        new PetModel('e0_p1', 'Field Mouse', '🐭', 5499, 'Common', 0.001),
+                        new PetModel('e0_p2', 'Brown Dog', '🐶', 3001, 'Common', 0.002),
+                        new PetModel('e0_p3', 'Stray Cat', '🐱', 1050, 'Uncommon', 0.005),
+                        new PetModel('e0_p4', 'Pigeon', '🐦', 400, 'Uncommon', 0.008),
+                        new PetModel('e0_p5', 'Goldfish', '🐟', 50, 'Rare', 0.015)
                     ]);
                 }
                 if (index === 1) {
                     return new EggModel('egg_rare', 'Forest Egg', 499.99, 'Rare forest animals. Hatch Time: 6s.', 6, [
-                        new PetModel('e1_p1', 'Red Fox', '🦊', 4550, 'Uncommon', 250),
-                        new PetModel('e1_p2', 'Brown Bear', '🐻', 2825, 'Rare', 450),
-                        new PetModel('e1_p3', 'Forest Owl', '🦉', 1750, 'Rare', 850),
-                        new PetModel('e1_p4', 'Wild Boar', '🐗', 750, 'Epic', 1800),
-                        new PetModel('e1_p5', 'Green Frog', '🐸', 125, 'Epic', 3500)
+                        new PetModel('e1_p1', 'Red Fox', '🦊', 4550, 'Uncommon', 0.02),
+                        new PetModel('e1_p2', 'Brown Bear', '🐻', 2825, 'Rare', 0.03),
+                        new PetModel('e1_p3', 'Forest Owl', '🦉', 1750, 'Rare', 0.05),
+                        new PetModel('e1_p4', 'Wild Boar', '🐗', 750, 'Epic', 0.10),
+                        new PetModel('e1_p5', 'Green Frog', '🐸', 125, 'Epic', 0.15)
                     ]);
                 }
                 if (index === 2) {
                     return new EggModel('egg_epic', 'Mystic Egg', 4999.99, 'Epic beasts and a secret. Hatch Time: 12s.', 12, [
-                        new PetModel('e2_p1', 'Savannah Lion', '🦁', 5099, 'Rare', 5000),
-                        new PetModel('e2_p2', 'Jungle Tiger', '🐯', 2555, 'Epic', 9500),
-                        new PetModel('e2_p3', 'Giant Elephant', '🐘', 1520, 'Epic', 18000),
-                        new PetModel('e2_p4', 'Rhino', '🦏', 650, 'Legendary', 45000),
-                        new PetModel('e2_p5', 'Hippopotamus', '🦛', 165, 'Legendary', 90000),
-                        new PetModel('e2_secret', 'Ancient Dragon', '🐉', 11, 'Secret', 500000) 
+                        new PetModel('e2_p1', 'Savannah Lion', '🦁', 5099, 'Rare', 0.20),
+                        new PetModel('e2_p2', 'Jungle Tiger', '🐯', 2555, 'Epic', 0.35),
+                        new PetModel('e2_p3', 'Giant Elephant', '🐘', 1520, 'Epic', 0.50),
+                        new PetModel('e2_p4', 'Rhino', '🦏', 650, 'Legendary', 0.80),
+                        new PetModel('e2_p5', 'Hippopotamus', '🦛', 165, 'Legendary', 1.20),
+                        new PetModel('e2_secret', 'Ancient Dragon', '🐉', 11, 'Secret', 5.00) 
                     ]);
                 }
                 if (index === 3) {
                     return new EggModel('egg_ocean', 'Ocean Egg', 49999.99, 'Deep sea creatures. Hatch Time: 25s.', 25, [
-                        new PetModel('e3_p1', 'Sea Turtle', '🐢', 5545, 'Epic', 250000),
-                        new PetModel('e3_p2', 'Dolphin', '🐬', 2888, 'Epic', 550000),
-                        new PetModel('e3_p3', 'Shark', '🦈', 1111, 'Legendary', 1200000),
-                        new PetModel('e3_p4', 'Whale', '🐳', 350, 'Mythic', 3000000),
-                        new PetModel('e3_p5', 'Octopus', '🐙', 100, 'Mythic', 8500000),
-                        new PetModel('e3_secret', 'Kraken', '🦑', 6, 'Secret', 25000000)
+                        new PetModel('e3_p1', 'Sea Turtle', '🐢', 5545, 'Epic', 2.00),
+                        new PetModel('e3_p2', 'Dolphin', '🐬', 2888, 'Epic', 3.50),
+                        new PetModel('e3_p3', 'Shark', '🦈', 1111, 'Legendary', 5.00),
+                        new PetModel('e3_p4', 'Whale', '🐳', 350, 'Mythic', 8.00),
+                        new PetModel('e3_p5', 'Octopus', '🐙', 100, 'Mythic', 12.00),
+                        new PetModel('e3_secret', 'Kraken', '🦑', 6, 'Secret', 35.00)
                     ]);
                 }
                 if (index === 4) {
                     return new EggModel('egg_galactic', 'Galactic Egg', 499999.99, 'Cosmic entities. Hatch Time: 60s.', 60, [
-                        new PetModel('e4_p1', 'Alien', '👽', 6060, 'Legendary', 15000000),
-                        new PetModel('e4_p2', 'Astronaut', '👨‍🚀', 2525, 'Legendary', 35000000),
-                        new PetModel('e4_p3', 'Comet', '☄️', 1010, 'Mythic', 85000000),
-                        new PetModel('e4_p4', 'UFO', '🛸', 300, 'Mythic', 250000000),
-                        new PetModel('e4_p5', 'Star', '⭐', 100, 'Divine', 750000000),
-                        new PetModel('e4_secret', 'Black Hole', '🌌', 5, 'Secret', 5000000000)
+                        new PetModel('e4_p1', 'Alien', '👽', 6060, 'Legendary', 15.00),
+                        new PetModel('e4_p2', 'Astronaut', '👨‍🚀', 2525, 'Legendary', 25.00),
+                        new PetModel('e4_p3', 'Comet', '☄️', 1010, 'Mythic', 40.00),
+                        new PetModel('e4_p4', 'UFO', '🛸', 300, 'Mythic', 65.00),
+                        new PetModel('e4_p5', 'Star', '⭐', 100, 'Divine', 100.00),
+                        new PetModel('e4_secret', 'Black Hole', '🌌', 5, 'Secret', 500.00)
                     ]);
                 }
 
@@ -509,15 +509,15 @@
                 // Maximale Schlüpfzeit bei 5 Minuten (300s) gekappt
                 const hatchTime = Math.min(300, 60 + (index - 4) * 30); 
 
-                const petBaseIncome = 15000000 * Math.pow(10, index - 4);
+                const petBaseIncome = 100 * Math.pow(6, index - 4);
 
                 const procPets = [
                     new PetModel(`e${index}_p1`, `${adj} Minion`, emojis[(index*2)%emojis.length], 6000, 'Legendary', petBaseIncome),
-                    new PetModel(`e${index}_p2`, `${noun} Guard`, emojis[(index*4)%emojis.length], 2500, 'Legendary', petBaseIncome * 2.5),
-                    new PetModel(`e${index}_p3`, `${adj} ${noun}`, emojis[(index*5)%emojis.length], 1000, 'Mythic', petBaseIncome * 6),
-                    new PetModel(`e${index}_p4`, `True ${noun}`, emojis[(index*6)%emojis.length], 350, 'Mythic', petBaseIncome * 18),
-                    new PetModel(`e${index}_p5`, `Supreme ${adj}`, emojis[(index*8)%emojis.length], 145, 'Divine', petBaseIncome * 50),
-                    new PetModel(`e${index}_secret`, `The ${adj} ${noun}`, emojis[(index*9)%emojis.length], 5, 'Secret', petBaseIncome * 350)
+                    new PetModel(`e${index}_p2`, `${noun} Guard`, emojis[(index*4)%emojis.length], 2500, 'Legendary', petBaseIncome * 1.5),
+                    new PetModel(`e${index}_p3`, `${adj} ${noun}`, emojis[(index*5)%emojis.length], 1000, 'Mythic', petBaseIncome * 2.5),
+                    new PetModel(`e${index}_p4`, `True ${noun}`, emojis[(index*6)%emojis.length], 350, 'Mythic', petBaseIncome * 4),
+                    new PetModel(`e${index}_p5`, `Supreme ${adj}`, emojis[(index*8)%emojis.length], 145, 'Divine', petBaseIncome * 7),
+                    new PetModel(`e${index}_secret`, `The ${adj} ${noun}`, emojis[(index*9)%emojis.length], 5, 'Secret', petBaseIncome * 25)
                 ];
 
                 return new EggModel(`egg_proc_${index}`, eggName, cost, `Infinite Tier ${index - 3} Egg. Hatch Time: ${hatchTime}s.`, hatchTime, procPets);
