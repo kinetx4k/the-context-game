@@ -83,6 +83,16 @@
         .super-slot-active {
             box-shadow: 0 0 20px rgba(234, 179, 8, 0.4);
         }
+        
+        /* Neuer Klick-Effekt für zusätzliche Funktionen */
+        .click-pulse {
+            animation: click-anim 0.2s ease-out;
+        }
+        @keyframes click-anim {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen font-sans overflow-x-hidden">
@@ -96,10 +106,14 @@
                 <button onclick="UI_System.showTutorial()" class="text-2xl hover:scale-110 transition-transform bg-slate-700 hover:bg-slate-600 p-2 rounded-lg border border-slate-600" title="Tutorial">📖</button>
                 <div>
                     <h1 class="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Mystic Pets</h1>
-                    <p class="text-slate-400 text-sm">Collect them all!</p>
+                    <p class="text-slate-400 text-sm">Hardcore Edition</p>
                 </div>
             </div>
             <div class="flex items-center gap-6">
+                <!-- Neue Clicker Funktion -->
+                <button id="manual-click-btn" class="hidden bg-emerald-700 hover:bg-emerald-600 px-4 py-2 rounded-lg border border-emerald-500 font-bold transition-colors" onclick="GameController.manualClick()">
+                    Click for €
+                </button>
                 <div class="bg-slate-900 px-4 py-2 rounded-lg border border-slate-600 flex items-center gap-2">
                     <span class="text-emerald-400 font-bold">Balance:</span>
                     <span id="player-balance" class="text-xl font-mono">30.00</span>
@@ -129,6 +143,12 @@
                 <!-- Hatching Arena -->
                 <div class="bg-slate-800 p-8 rounded-xl shadow-lg border border-slate-700 text-center min-h-[300px] flex flex-col items-center justify-center relative overflow-hidden" id="hatching-arena">
                     <h2 class="text-2xl font-bold mb-4 absolute top-4 left-4 text-slate-400">Hatching Area</h2>
+                    
+                    <!-- Queue Counter Display -->
+                    <div id="queue-counter" class="absolute top-4 right-4 text-slate-400 font-mono font-bold hidden">
+                        Queue: <span id="queue-amount" class="text-emerald-400">0</span>
+                    </div>
+
                     <div id="hatch-display" class="flex flex-col items-center w-full">
                         <div class="text-slate-500 mb-4">Select an egg to open!</div>
                         <div class="text-6xl opacity-50">🥚</div>
@@ -146,10 +166,10 @@
 
             <!-- Sidebar: Inventory & Stats -->
             <div class="space-y-6">
-                <!-- Live Probabilities -->
+                <!-- Probabilities -->
                 <div class="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
-                    <h2 class="text-xl font-bold mb-4 border-b border-slate-600 pb-2">Live Probabilities</h2>
-                    <p class="text-xs text-slate-400 mb-4">Odds shift dynamically based on your pulls!</p>
+                    <h2 class="text-xl font-bold mb-4 border-b border-slate-600 pb-2">Egg Odds</h2>
+                    <p class="text-xs text-slate-400 mb-4">Select an egg to view the fixed drop rates.</p>
                     <div id="probability-display" class="space-y-4">
                         <div class="text-center text-slate-500">Select an egg to view odds.</div>
                     </div>
@@ -286,12 +306,12 @@
                     
                     <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
                         <h4 class="text-lg font-bold text-emerald-400 mb-2">🥚 Hatching Eggs</h4>
-                        <p>Buy eggs to hatch new pets. Every pet generates <strong>Income per second</strong>. The rarer the pet, the more money it brings! Whenever you pull a pet, its probability goes down slightly, and all other pets in that egg become easier to get.</p>
+                        <p>Buy eggs to hatch new pets. <strong>Eggs now have a hatching cooldown!</strong> If you buy multiple, they will queue up and hatch one after another. The rarer the pet, the more money it brings per second.</p>
                     </div>
 
                     <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
                         <h4 class="text-lg font-bold text-blue-400 mb-2">⭐ Leveling Up</h4>
-                        <p>Pets level up automatically over time. As their level increases, their income multiplier goes up! Watch the yellow XP bar fill up under your pets in the inventory.</p>
+                        <p>Pets level up automatically over time. In this Hardcore Edition, leveling requires more XP, and income starts much lower. You will need to fuse pets to survive!</p>
                     </div>
 
                     <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
@@ -301,12 +321,12 @@
 
                     <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
                         <h4 class="text-lg font-bold text-purple-400 mb-2">🔮 Fusion Shrine</h4>
-                        <p>Drag 3 <strong>identical pets</strong> (same animal, same star level) into the 3 fusion slots. Click 'FUSE' to merge them into a new, incredibly powerful pet with a higher Star rating (up to 5 ⭐). Fused pets earn 3x more income and level up much faster!</p>
+                        <p>Drag 3 <strong>identical pets</strong> (same animal, same star level) into the 3 fusion slots. Click 'FUSE' to merge them into a new, incredibly powerful pet with a higher Star rating (up to 5 ⭐). Fused pets earn massive income multipliers!</p>
                     </div>
 
                     <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
-                        <h4 class="text-lg font-bold text-cyan-400 mb-2">⚙️ Upgrades & Saving</h4>
-                        <p>Buy upgrades to boost global Income, XP gain, unlock new slots, or automate your game. Don't forget to click the ⚙️ icon in the top left to generate and save your progress code before leaving!</p>
+                        <h4 class="text-lg font-bold text-cyan-400 mb-2">⚙️ Upgrades & Functions</h4>
+                        <p>Buy upgrades to boost global Income, XP gain, unlock new slots, or automate your game. There are new upgrades to reduce Egg Hatch Times and increase Fusion Power. Look out for the manual Clicker Button!</p>
                     </div>
 
                 </div>
@@ -322,7 +342,7 @@
     <script>
         /**
          * Komplexes Event-System zur Entkopplung der Spiellogik.
-         * Dies sorgt für eine stark modulare und aufwendige Architektur.
+         * Sorgt für eine stark modulare und aufwendige Architektur.
          */
         class EventBus {
             constructor() {
@@ -341,22 +361,21 @@
         const GameEvents = new EventBus();
 
         /**
-         * Datenmodelle für maximale Komplexität und Typsicherheit (simuliert).
+         * Datenmodelle für maximale Komplexität
          */
         class PetModel {
-            constructor(id, name, emoji, baseWeight, rarity, baseIncome) {
+            constructor(id, name, emoji, weight, rarity, baseIncome) {
                 this.id = id;
                 this.name = name;
                 this.emoji = emoji;
-                this.baseWeight = baseWeight; // Startgewicht für die Wahrscheinlichkeit
-                this.currentWeight = baseWeight; // Dynamisches Gewicht
-                this.rarity = rarity; // 'Common', 'Rare', 'Epic', 'Secret'
+                this.weight = weight; // Festes Gewicht für die Wahrscheinlichkeit (Keine dynamische Änderung mehr)
+                this.rarity = rarity; // 'Common', 'Rare', 'Epic', 'Legendary', 'Mythic', 'Divine', 'Secret'
                 
-                // Income and Level Progression Management Subsystem
+                // Income and Level Progression (Deutlich generft für schwereres Spiel)
                 this.baseIncome = baseIncome;
                 this.level = 1;
                 this.xp = 0;
-                this.nextLevelXp = 100;
+                this.nextLevelXp = 250; // Schwerer zu leveln
                 this.fusionLevel = 0;
             }
         }
@@ -368,7 +387,7 @@
                 this.description = description;
                 this.baseCost = baseCost;
                 this.costMultiplier = costMultiplier;
-                this.effectType = effectType; // 'income', 'xp', 'slots', 'feature'
+                this.effectType = effectType; 
                 this.effectValuePerLevel = effectValuePerLevel;
                 this.level = 0;
                 this.maxLevel = maxLevel;
@@ -382,119 +401,136 @@
         }
 
         class EggModel {
-            constructor(id, name, cost, description, petsList) {
+            constructor(id, name, cost, description, hatchTimeSeconds, petsList) {
                 this.id = id;
                 this.name = name;
                 this.cost = cost;
                 this.description = description;
-                this.pets = petsList; // Array von PetModels
-                this.unlocked = true; // Immer kaufbar
-                this.totalPulls = 0;
+                this.baseHatchTime = hatchTimeSeconds; // Neue Wartezeit-Funktion
+                this.pets = petsList; 
+                this.unlocked = true; 
             }
             
-            // Berechnet die echten Prozentzahlen basierend auf dynamischen Gewichten
+            // Wahrscheinlichkeiten sind nun statisch! Keine dynamische Veränderung mehr.
             getProbabilities() {
-                let totalWeight = this.pets.reduce((sum, pet) => sum + pet.currentWeight, 0);
+                let totalWeight = this.pets.reduce((sum, pet) => sum + pet.weight, 0);
                 return this.pets.map(pet => ({
                     pet: pet,
-                    percentage: ((pet.currentWeight / totalWeight) * 100).toFixed(2)
+                    percentage: ((pet.weight / totalWeight) * 100).toFixed(2)
                 }));
             }
         }
 
+        class HatchQueueItem {
+            constructor(egg, petResult, isJackpot) {
+                this.id = 'hatch_' + Math.random().toString(36).substr(2, 9);
+                this.egg = egg;
+                this.petResult = petResult; 
+                this.isJackpot = isJackpot;
+                
+                // Berechne die genaue Zeit mit dem neuen Upgrade-Multiplikator
+                let speedBonus = State.getUpgradeMultiplier('hatch_speed');
+                // Wenn Multiplier 1.0 (Lvl 0) -> volle Zeit. Wenn 1.5 -> Zeit / 1.5
+                this.timeLeft = this.egg.baseHatchTime / speedBonus;
+                this.maxTime = this.timeLeft;
+            }
+        }
+
         /**
-         * Spiel-Datenbank: Definition aller Eier und Tiere
+         * Spiel-Datenbank: Definition aller Eier und Tiere mit stark angepasster Ökonomie
          */
         const GameDatabase = {
             createEggs: () => {
-                // Ei 1: Immer 5 Common Pets
+                // Einkommen massiv reduziert für Hardcore Modus!
                 const egg1Pets = [
-                    new PetModel('e1_p1', 'Field Mouse', '🐭', 550, 'Common', 0.05),
-                    new PetModel('e1_p2', 'Brown Dog', '🐶', 300, 'Common', 0.08),
-                    new PetModel('e1_p3', 'Stray Cat', '🐱', 100, 'Uncommon', 0.10),
-                    new PetModel('e1_p4', 'Pigeon', '🐦', 40, 'Uncommon', 0.06),
-                    new PetModel('e1_p5', 'Goldfish', '🐟', 10, 'Rare', 0.12)
+                    new PetModel('e1_p1', 'Field Mouse', '🐭', 550, 'Common', 0.001),
+                    new PetModel('e1_p2', 'Brown Dog', '🐶', 300, 'Common', 0.002),
+                    new PetModel('e1_p3', 'Stray Cat', '🐱', 100, 'Uncommon', 0.005),
+                    new PetModel('e1_p4', 'Pigeon', '🐦', 40, 'Uncommon', 0.008),
+                    new PetModel('e1_p5', 'Goldfish', '🐟', 10, 'Rare', 0.015)
                 ];
 
-                // Ei 2: Andere Tiere
                 const egg2Pets = [
-                    new PetModel('e2_p1', 'Red Fox', '🦊', 450, 'Uncommon', 0.50),
-                    new PetModel('e2_p2', 'Brown Bear', '🐻', 280, 'Rare', 0.80),
-                    new PetModel('e2_p3', 'Forest Owl', '🦉', 170, 'Rare', 0.60),
-                    new PetModel('e2_p4', 'Wild Boar', '🐗', 75, 'Epic', 0.70),
-                    new PetModel('e2_p5', 'Green Frog', '🐸', 25, 'Epic', 0.45)
+                    new PetModel('e2_p1', 'Red Fox', '🦊', 450, 'Uncommon', 0.02),
+                    new PetModel('e2_p2', 'Brown Bear', '🐻', 280, 'Rare', 0.03),
+                    new PetModel('e2_p3', 'Forest Owl', '🦉', 170, 'Rare', 0.05),
+                    new PetModel('e2_p4', 'Wild Boar', '🐗', 75, 'Epic', 0.10),
+                    new PetModel('e2_p5', 'Green Frog', '🐸', 25, 'Epic', 0.15)
                 ];
 
-                // Ei 3: Mit Secret Pet
                 const egg3Pets = [
-                    new PetModel('e3_p1', 'Savannah Lion', '🦁', 320, 'Rare', 2.50),
-                    new PetModel('e3_p2', 'Jungle Tiger', '🐯', 150, 'Epic', 2.80),
-                    new PetModel('e3_p3', 'Giant Elephant', '🐘', 85, 'Epic', 3.00),
-                    new PetModel('e3_p4', 'Rhino', '🦏', 35, 'Legendary', 2.70),
-                    new PetModel('e3_p5', 'Hippopotamus', '🦛', 15, 'Legendary', 2.60),
-                    new PetModel('e3_secret', 'Ancient Dragon', '🐉', 1.5, 'Secret', 15.00) // Sehr geringes Startgewicht
+                    new PetModel('e3_p1', 'Savannah Lion', '🦁', 320, 'Rare', 0.20),
+                    new PetModel('e3_p2', 'Jungle Tiger', '🐯', 150, 'Epic', 0.35),
+                    new PetModel('e3_p3', 'Giant Elephant', '🐘', 85, 'Epic', 0.50),
+                    new PetModel('e3_p4', 'Rhino', '🦏', 35, 'Legendary', 0.80),
+                    new PetModel('e3_p5', 'Hippopotamus', '🦛', 15, 'Legendary', 1.20),
+                    new PetModel('e3_secret', 'Ancient Dragon', '🐉', 1.5, 'Secret', 5.00) 
                 ];
 
-                // Ei 4: Ocean Egg
                 const egg4Pets = [
-                    new PetModel('e4_p1', 'Sea Turtle', '🐢', 260, 'Epic', 5.50),
-                    new PetModel('e4_p2', 'Dolphin', '🐬', 130, 'Epic', 6.00),
-                    new PetModel('e4_p3', 'Shark', '🦈', 55, 'Legendary', 6.50),
-                    new PetModel('e4_p4', 'Whale', '🐳', 20, 'Mythic', 7.00),
-                    new PetModel('e4_p5', 'Octopus', '🐙', 8, 'Mythic', 5.80),
+                    new PetModel('e4_p1', 'Sea Turtle', '🐢', 260, 'Epic', 2.00),
+                    new PetModel('e4_p2', 'Dolphin', '🐬', 130, 'Epic', 3.50),
+                    new PetModel('e4_p3', 'Shark', '🦈', 55, 'Legendary', 5.00),
+                    new PetModel('e4_p4', 'Whale', '🐳', 20, 'Mythic', 8.00),
+                    new PetModel('e4_p5', 'Octopus', '🐙', 8, 'Mythic', 12.00),
                     new PetModel('e4_secret', 'Kraken', '🦑', 0.8, 'Secret', 35.00)
                 ];
 
-                // Ei 5: Galactic Egg
                 const egg5Pets = [
                     new PetModel('e5_p1', 'Alien', '👽', 190, 'Legendary', 15.00),
-                    new PetModel('e5_p2', 'Astronaut', '👨‍🚀', 95, 'Legendary', 16.00),
-                    new PetModel('e5_p3', 'Comet', '☄️', 45, 'Mythic', 14.00),
-                    new PetModel('e5_p4', 'UFO', '🛸', 18, 'Mythic', 18.00),
-                    new PetModel('e5_p5', 'Star', '⭐', 4, 'Divine', 17.00),
-                    new PetModel('e5_secret', 'Black Hole', '🌌', 0.2, 'Secret', 100.00)
+                    new PetModel('e5_p2', 'Astronaut', '👨‍🚀', 95, 'Legendary', 25.00),
+                    new PetModel('e5_p3', 'Comet', '☄️', 45, 'Mythic', 40.00),
+                    new PetModel('e5_p4', 'UFO', '🛸', 18, 'Mythic', 65.00),
+                    new PetModel('e5_p5', 'Star', '⭐', 4, 'Divine', 100.00),
+                    new PetModel('e5_secret', 'Black Hole', '🌌', 0.2, 'Secret', 500.00)
                 ];
 
+                // Preise massiv erhöht, Zeiten hinzugefügt
                 return [
-                    new EggModel('egg_basic', 'Starter Egg', 29.99, 'Contains 5 common pets. Good for beginners.', egg1Pets),
-                    new EggModel('egg_rare', 'Forest Egg', 299.90, 'Contains rare forest animals.', egg2Pets),
-                    new EggModel('egg_epic', 'Mystic Egg', 999.90, 'Contains epic beasts and a hidden secret!', egg3Pets),
-                    new EggModel('egg_ocean', 'Ocean Egg', 4999.90, 'Contains deep sea creatures and a dark secret.', egg4Pets),
-                    new EggModel('egg_galactic', 'Galactic Egg', 15000.00, 'Contains cosmic entities from beyond the stars.', egg5Pets)
+                    new EggModel('egg_basic', 'Starter Egg', 50.00, 'Basic pets. Hatch Time: 3s.', 3, egg1Pets),
+                    new EggModel('egg_rare', 'Forest Egg', 600.00, 'Rare forest animals. Hatch Time: 6s.', 6, egg2Pets),
+                    new EggModel('egg_epic', 'Mystic Egg', 3500.00, 'Epic beasts and a secret. Hatch Time: 12s.', 12, egg3Pets),
+                    new EggModel('egg_ocean', 'Ocean Egg', 15000.00, 'Deep sea creatures. Hatch Time: 25s.', 25, egg4Pets),
+                    new EggModel('egg_galactic', 'Galactic Egg', 75000.00, 'Cosmic entities. Hatch Time: 60s.', 60, egg5Pets)
                 ];
             }
         };
 
         /**
-         * State Manager: Verwaltet Geld, Inventar und Zeit
-         * Nutzt komplexe private Variablen und Getter/Setter
+         * State Manager: Verwaltet Geld, Inventar, Zeit und die neue Queue
          */
         class GameState {
             constructor() {
-                this.initializeState();
+                this.startSetup();
                 this._eggs = GameDatabase.createEggs();
                 this._activeEggDisplay = null;
             }
 
-            initializeState() {
-                this._balance = 30.00;
+            startSetup() {
+                this._balance = 50.00; // Startguthaben
                 this._inventory = [];
                 
-                // Advanced Level and Income Architecture
                 this._totalIncomePerSec = 0;
-                this._superPetUids = [null]; // Dynamic array for multiple slots
-                
-                // New Complex Features State
+                this._superPetUids = [null]; 
                 this._fusionSlots = [null, null, null];
                 this._autoEquipStrategy = 'lowest_level';
                 this._autoEquipTimer = 0;
+                
+                // Neues Queue System
+                this._hatchQueue = [];
+                this._isHatchAnimating = false;
+
+                // Upgrades deutlich teurer und neue Funktionen hinzugefügt
                 this._upgrades = [
-                    new UpgradeModel('upg_income', 'Golden Touch', 'Increases all pet income by 15% per level.', 150, 1.8, 'income', 0.15),
-                    new UpgradeModel('upg_xp', 'Smart Pets', 'Increases all pet XP gain by 20% per level.', 200, 1.6, 'xp', 0.20),
-                    new UpgradeModel('upg_slots', 'Extra Super Slots', 'Unlocks an additional Super Pet Slot per level.', 800, 3.5, 'slots', 1),
-                    new UpgradeModel('upg_auto_equip', 'Auto-Equip Feature', 'Unlocks the Auto-Equip button for Super Pets.', 1000, 1, 'feature_auto_equip', 1, 1),
-                    new UpgradeModel('upg_auto_trainer', 'Auto-Trainer', 'Permanently and automatically equips pets based on your strategy.', 2500, 1, 'feature_auto_trainer', 1, 1),
-                    new UpgradeModel('upg_auto_fill', 'Auto-Fill Feature', 'Unlocks the Auto-Fill button for the Fusion Shrine.', 1500, 1, 'feature_auto_fill', 1, 1)
+                    new UpgradeModel('upg_income', 'Golden Touch', 'Increases all pet income by 10% per level.', 250, 2.0, 'income', 0.10),
+                    new UpgradeModel('upg_xp', 'Smart Pets', 'Increases all pet XP gain by 15% per level.', 300, 2.0, 'xp', 0.15),
+                    new UpgradeModel('upg_slots', 'Extra Super Slots', 'Unlocks an additional Super Pet Slot per level.', 1500, 4.0, 'slots', 1),
+                    new UpgradeModel('upg_hatch_speed', 'Fast Hatching', 'Reduces egg hatch cooldown times by 10% per level.', 1000, 2.5, 'hatch_speed', 0.10, 10),
+                    new UpgradeModel('upg_fusion_power', 'Fusion Mastery', 'Fused pets get an even higher income boost.', 3000, 3.5, 'fusion_power', 0.5, 5),
+                    new UpgradeModel('upg_feature_clicker', 'Manual Clicker', 'Unlocks a button to manually click for money.', 500, 1, 'feature_clicker', 1, 1),
+                    new UpgradeModel('upg_auto_equip', 'Auto-Equip Feature', 'Unlocks the Auto-Equip button for Super Pets.', 2000, 1, 'feature_auto_equip', 1, 1),
+                    new UpgradeModel('upg_auto_trainer', 'Auto-Trainer', 'Permanently and automatically equips pets based on your strategy.', 5000, 1, 'feature_auto_trainer', 1, 1),
+                    new UpgradeModel('upg_auto_fill', 'Auto-Fill Feature', 'Unlocks the Auto-Fill button for the Fusion Shrine.', 3500, 1, 'feature_auto_fill', 1, 1)
                 ];
             }
 
@@ -506,6 +542,10 @@
             get superPetUids() { return this._superPetUids; }
             get fusionSlots() { return this._fusionSlots; }
             get upgrades() { return this._upgrades; }
+            get hatchQueue() { return this._hatchQueue; }
+            get isHatchAnimating() { return this._isHatchAnimating; }
+            set isHatchAnimating(val) { this._isHatchAnimating = val; }
+            
             get autoEquipStrategy() { return this._autoEquipStrategy; }
             set autoEquipStrategy(val) { this._autoEquipStrategy = val; }
 
@@ -532,17 +572,14 @@
             setSuperPet(index, uid) {
                 this.adjustSuperSlots();
                 if (uid !== null) {
-                    // Remove from other super slots if dragged from one to another
                     const existingIndex = this._superPetUids.indexOf(uid);
                     if (existingIndex !== -1) {
                         this._superPetUids[existingIndex] = null;
                     }
-                    // Also remove from fusion slot if it was there
                     if (this._fusionSlots.includes(uid)) {
                         this.removeFromFusion(uid);
                     }
                 }
-
                 this._superPetUids[index] = uid;
                 GameEvents.emit('state_super_pet_updated', this._superPetUids);
                 this.calculateTotalIncome();
@@ -555,18 +592,15 @@
             }
 
             setFusionSlot(index, uid) {
-                // Remove from other fusion slots if dragged from one to another
                 const existingIndex = this._fusionSlots.indexOf(uid);
                 if (existingIndex !== -1) {
                     this._fusionSlots[existingIndex] = null;
                 }
-                // Also remove from super slot if it was there
                 const superIdx = this._superPetUids.indexOf(uid);
                 if (superIdx !== -1) {
                     this._superPetUids[superIdx] = null;
                     GameEvents.emit('state_super_pet_updated', this._superPetUids);
                 }
-
                 this._fusionSlots[index] = uid;
                 GameEvents.emit('state_fusion_updated', this._fusionSlots);
             }
@@ -605,36 +639,48 @@
                 }
             }
 
+            queueHatchTask(hatchTask) {
+                this._hatchQueue.push(hatchTask);
+                GameEvents.emit('state_queue_updated', this._hatchQueue);
+            }
+
             processSmoothTick(fraction) {
-                // Komplexes Geld-System: Extrem flüssig verteilt auf jeden Frame
+                // Geld über Zeit generieren
                 if (this._totalIncomePerSec > 0) {
                     this._balance += this._totalIncomePerSec * fraction;
                     GameEvents.emit('state_balance_updated', this._balance);
                 }
 
-                // Smooth Pet XP Progression - extrem optimiert, um DOM-Neuaufbauten zu verhindern
+                // Komplexe Abarbeitung der Warteschlange
+                if (this._hatchQueue.length > 0 && !this._isHatchAnimating) {
+                    let activeTask = this._hatchQueue[0];
+                    activeTask.timeLeft -= fraction;
+                    
+                    if (activeTask.timeLeft <= 0) {
+                        this._isHatchAnimating = true;
+                        GameEvents.emit('event_hatch_ready', activeTask);
+                    } else {
+                        // UI über die tickende Zeit informieren
+                        GameEvents.emit('state_queue_tick', activeTask);
+                    }
+                }
+
                 let needsIncomeRecalc = false;
-                
                 const xpMultiplier = this.getUpgradeMultiplier('xp');
 
+                // Erfahrungspunkte vergeben (Schwereres Scaling)
                 this._inventory.forEach(item => {
-                    let xpToGive = 5 * fraction * xpMultiplier;
-                    
-                    // Fusion Bonus: +100% XP pro Stern, damit sie schneller leveln
+                    let xpToGive = 2 * fraction * xpMultiplier;
                     xpToGive *= (1 + item.petData.fusionLevel);
-
-                    // Der Super Slot verdoppelt den Erfahrungsgewinn
-                    if (this._superPetUids.includes(item.uid)) {
-                        xpToGive *= 3;
-                    }
+                    if (this._superPetUids.includes(item.uid)) xpToGive *= 3;
                     
                     item.petData.xp += xpToGive;
                     
-                    // Komplexe Level Up Logik für die Tiere
+                    // Strengeres Level-System
                     if (item.petData.xp >= item.petData.nextLevelXp) {
                         item.petData.level++;
                         item.petData.xp -= item.petData.nextLevelXp;
-                        item.petData.nextLevelXp = Math.floor(item.petData.nextLevelXp * 1.5);
+                        item.petData.nextLevelXp = Math.floor(item.petData.nextLevelXp * 2.0); // Verdoppelt sich!
                         needsIncomeRecalc = true;
                     }
                 });
@@ -652,18 +698,15 @@
                 }
                 
                 if (this._inventory.length > 0) {
-                    // Löst nur das Update der Balken und Texte aus, ohne das DOM zu zerstören!
                     GameEvents.emit('state_pet_xp_smooth_update', this._inventory);
                 }
             }
 
             calculateTotalIncome() {
                 let total = 0;
-                
                 const incomeMultiplier = this.getUpgradeMultiplier('income');
 
                 this._inventory.forEach(item => {
-                    // Das Einkommen wird dynamisch mit dem Level des Pets skaliert
                     let petIncome = item.petData.baseIncome * item.petData.level;
                     total += petIncome;
                 });
@@ -680,11 +723,13 @@
                 return false;
             }
 
-            addPet(pet) {
-                // Erstelle eine extrem sichere Deep Copy des Objekts, um Referenzfehler zu vermeiden
-                const petCopy = JSON.parse(JSON.stringify(pet));
+            addBalance(amount) {
+                this._balance += amount;
+                GameEvents.emit('state_balance_updated', this._balance);
+            }
 
-                // Füge einzigartige ID für das Inventar-Item hinzu
+            addPet(pet) {
+                const petCopy = JSON.parse(JSON.stringify(pet));
                 const inventoryItem = {
                     uid: 'inv_' + Math.random().toString(36).substr(2, 9),
                     petData: petCopy,
@@ -734,11 +779,10 @@
                 }
             }
 
-            // --- Complex Save/Load System ---
             exportSave() {
                 try {
                     const saveData = {
-                        v: 1, // Versioning
+                        v: 2, 
                         b: this._balance,
                         i: this._inventory,
                         s: this._superPetUids,
@@ -756,8 +800,7 @@
             importSave(saveStr) {
                 try {
                     const parsed = JSON.parse(decodeURIComponent(atob(saveStr)));
-                    
-                    if (!parsed || parsed.v !== 1) return false;
+                    if (!parsed || parsed.v !== 2) return false;
 
                     this._balance = parsed.b || 0;
                     this._inventory = parsed.i || [];
@@ -765,7 +808,6 @@
                     this._fusionSlots = parsed.f || [null, null, null];
                     this._autoEquipStrategy = parsed.st || 'lowest_level';
                     
-                    // Re-apply upgrades safely
                     if (parsed.u && Array.isArray(parsed.u)) {
                         parsed.u.forEach(savedUpg => {
                             const actualUpg = this._upgrades.find(u => u.id === savedUpg.id);
@@ -778,7 +820,6 @@
                     this.adjustSuperSlots();
                     this.calculateTotalIncome();
                     
-                    // Emit all events to rebuild UI
                     GameEvents.emit('state_balance_updated', this._balance);
                     GameEvents.emit('state_upgrades_updated', this._upgrades);
                     GameEvents.emit('state_features_updated', null);
@@ -797,58 +838,29 @@
         const State = new GameState();
 
         /**
-         * Complex Probability Engine
-         * Passt die Wahrscheinlichkeiten dynamisch an, wenn ein Tier gezogen wird.
+         * Statische Probability Engine - Nichts ändert sich mehr dynamisch.
          */
         class ProbabilityEngine {
             static drawPet(egg) {
-                // 1. Berechne Gesamtgewicht
-                let totalWeight = egg.pets.reduce((sum, p) => sum + p.currentWeight, 0);
-                
-                // 2. Zufallszahl zwischen 0 und Gesamtgewicht
+                let totalWeight = egg.pets.reduce((sum, p) => sum + p.weight, 0);
                 let randomVal = Math.random() * totalWeight;
                 
-                // 3. Ermittle das gezogene Tier
                 let currentSum = 0;
                 let drawnPet = null;
                 for (let pet of egg.pets) {
-                    currentSum += pet.currentWeight;
+                    currentSum += pet.weight;
                     if (randomVal <= currentSum) {
                         drawnPet = pet;
                         break;
                     }
                 }
-
-                // Fallback, sollte nicht passieren
                 if (!drawnPet) drawnPet = egg.pets[0];
-
-                // 4. Aktualisiere die Wahrscheinlichkeiten komplex
-                ProbabilityEngine.adjustWeights(egg, drawnPet);
-
                 return drawnPet;
-            }
-
-            static adjustWeights(egg, drawnPet) {
-                // Das gezogene Tier verliert 20% seiner Wahrscheinlichkeit
-                const weightToDistribute = drawnPet.currentWeight * 0.20;
-                drawnPet.currentWeight -= weightToDistribute;
-
-                // Die anderen Tiere in diesem Ei bekommen genau diese Wahrscheinlichkeit dazu
-                const otherPets = egg.pets.filter(p => p.id !== drawnPet.id);
-                const addedWeightPerPet = weightToDistribute / otherPets.length;
-
-                otherPets.forEach(pet => {
-                    pet.currentWeight += addedWeightPerPet;
-                });
-                
-                // Event feuern, um UI zu aktualisieren
-                GameEvents.emit('event_probabilities_changed', egg);
             }
         }
 
         /**
          * Game Loop Manager
-         * Komplexe und weiche Berechnungen über requestAnimationFrame
          */
         class GameLoop {
             constructor() {
@@ -864,15 +876,12 @@
             loop(currentTime) {
                 if (!this.isRunning) return;
                 
-                // Komplexe Zeit-Berechnung für extrem flüssige Updates
                 const dt = currentTime - this.lastTime;
                 this.lastTime = currentTime;
                 
-                // Verhindern von zu großen Sprüngen, falls das Fenster im Hintergrund ist
                 const safeDt = Math.min(dt, 100); 
                 const fraction = safeDt / 1000;
 
-                // Geld und Erfahrung absolut flüssig aktualisieren
                 State.processSmoothTick(fraction);
 
                 requestAnimationFrame(this.loop);
@@ -881,7 +890,6 @@
 
         /**
          * UI System: Verwaltet das gesamte DOM
-         * Hochgradig strukturiert in Sub-Module
          */
         const UI_System = {
             sortType: 'newest',
@@ -908,13 +916,17 @@
                     btnAutoEquip: document.getElementById('btn-auto-equip'),
                     strategySelect: document.getElementById('auto-equip-strategy'),
                     btnAutoFill: document.getElementById('btn-auto-fill'),
+                    btnManualClick: document.getElementById('manual-click-btn'),
                     fusionSlots: [
                         document.getElementById('fusion-slot-0'),
                         document.getElementById('fusion-slot-1'),
                         document.getElementById('fusion-slot-2')
                     ],
                     fuseButton: document.getElementById('fuse-button'),
+                    hatchingArena: document.getElementById('hatching-arena'),
                     hatchDisplay: document.getElementById('hatch-display'),
+                    queueCounter: document.getElementById('queue-counter'),
+                    queueAmount: document.getElementById('queue-amount'),
                     
                     // Modals
                     modal: document.getElementById('message-modal'),
@@ -928,7 +940,6 @@
                     tutorialModal: document.getElementById('tutorial-modal')
                 };
                 
-                // Event Handling für das komplexe Drag & Drop System
                 this.draggedUid = null;
             },
 
@@ -947,11 +958,11 @@
                 GameEvents.on('state_super_pet_updated', () => this.renderInventory(State.inventory));
                 GameEvents.on('state_fusion_updated', () => this.renderInventory(State.inventory));
                 GameEvents.on('state_active_egg_changed', (eggId) => this.renderProbabilities(eggId));
-                GameEvents.on('event_probabilities_changed', (egg) => {
-                    if (State.activeEggDisplay === egg.id) {
-                        this.renderProbabilities(egg.id);
-                    }
-                });
+                
+                // Neue Queue Events
+                GameEvents.on('state_queue_updated', (q) => this.updateQueueUI(q));
+                GameEvents.on('state_queue_tick', (task) => this.renderHatchTick(task));
+                GameEvents.on('event_hatch_ready', (task) => this.playHatchAnimation(task));
             },
 
             updateBalance: function(bal) {
@@ -1011,7 +1022,6 @@
                             card.classList.add('border-slate-600', 'hover:border-cyan-500');
                         }
                     } else if (card && upgrade.level >= upgrade.maxLevel) {
-                        // Max level design
                         card.classList.remove('border-red-500', 'bg-red-900/10', 'hover:border-cyan-500');
                         card.classList.add('border-yellow-500', 'bg-yellow-900/20');
                     }
@@ -1037,32 +1047,35 @@
                 } else {
                     this.dom.btnAutoFill.classList.add('hidden');
                 }
+
+                if(State.hasFeature('feature_clicker')) {
+                    this.dom.btnManualClick.classList.remove('hidden');
+                } else {
+                    this.dom.btnManualClick.classList.add('hidden');
+                }
             },
 
             updateSmoothXPbars: function(inventory) {
                 inventory.forEach(item => {
-                    // Update the visual width without causing layout reflows unnecessarily
                     const bar = document.getElementById(`xp-bar-${item.uid}`);
                     if (bar) {
                         bar.style.width = `${(item.petData.xp / item.petData.nextLevelXp) * 100}%`;
                     }
                     
-                    // Update Text dynamisch, um DOM Rebuilds bei Level Up zu vermeiden (behebt Anzeigefehler)
                     const lvlText = document.getElementById(`lvl-text-${item.uid}`);
                     const incText = document.getElementById(`inc-text-${item.uid}`);
                     if (lvlText && incText) {
                         lvlText.innerText = `Lvl ${item.petData.level}`;
                         const currentIncome = item.petData.baseIncome * item.petData.level;
-                        incText.innerText = `€${currentIncome.toFixed(2)}/s`;
+                        incText.innerText = `€${currentIncome.toFixed(4)}/s`;
                     }
                 });
             },
 
             updateIncome: function(inc) {
-                this.dom.income.innerText = inc.toFixed(2);
+                this.dom.income.innerText = inc.toFixed(4);
             },
 
-            // High-Level Drag & Drop Controller Logik
             dragStart: function(event, uid) {
                 this.draggedUid = uid;
                 event.dataTransfer.setData('text/plain', uid);
@@ -1151,7 +1164,6 @@
                 const icon = document.getElementById('modal-icon');
                 const btn = document.getElementById('modal-button');
                 
-                // Reset classes
                 contentWrapper.className = 'bg-slate-900 rounded-xl p-8 border-t-4 relative overflow-hidden';
                 glow.className = 'absolute -top-20 -right-20 w-40 h-40 rounded-full blur-3xl opacity-20';
                 btn.className = 'w-full font-bold py-3 px-6 rounded-lg transition-all shadow-lg relative z-10';
@@ -1177,7 +1189,6 @@
                 }
 
                 this.dom.modal.classList.remove('hidden');
-                // Trigger reflow
                 void this.dom.modal.offsetWidth;
                 this.dom.modal.classList.remove('opacity-0');
                 document.getElementById('message-modal-wrapper').classList.remove('scale-95');
@@ -1211,7 +1222,7 @@
                             <div class="flex justify-between items-center mt-1">
                                 <span class="font-mono font-bold text-sm" id="egg-price-${egg.id}">${egg.cost.toFixed(2)} €</span>
                                 <button class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-1.5 px-4 rounded shadow-lg transition-colors" onclick="GameController.buyEggCustom('${egg.id}')">
-                                    Buy & Open
+                                    Buy to Queue
                                 </button>
                             </div>
                         </div>
@@ -1223,7 +1234,6 @@
                     this.dom.eggsContainer.appendChild(card);
                 });
                 
-                // Einmal direkt Farbe prüfen nach dem Erstellen
                 this.updateEggAffordability(State.balance);
             },
 
@@ -1236,9 +1246,14 @@
                     card.className = 'bg-slate-700 p-4 rounded-lg border transition-all flex flex-col justify-between';
                     
                     const isMaxed = upgrade.level >= upgrade.maxLevel;
-                    const bonusText = upgrade.effectType.startsWith('feature_') 
-                        ? (isMaxed ? 'Unlocked' : 'Locked') 
-                        : `+${((upgrade.currentMultiplier - 1) * 100).toFixed(0)}${upgrade.effectType === 'slots' ? ' Slots' : '%'}`;
+                    let bonusText = '';
+                    if (upgrade.effectType.startsWith('feature_')) {
+                        bonusText = isMaxed ? 'Unlocked' : 'Locked';
+                    } else if (upgrade.effectType === 'slots') {
+                        bonusText = `+${((upgrade.currentMultiplier - 1) * 100).toFixed(0)} Slots`;
+                    } else {
+                        bonusText = `+${((upgrade.currentMultiplier - 1) * 100).toFixed(0)}%`;
+                    }
 
                     card.innerHTML = `
                         <div>
@@ -1262,10 +1277,9 @@
                 const egg = State.eggs.find(e => e.id === eggId);
                 if (!egg) return;
 
-                this.dom.probDisplay.innerHTML = `<h3 class="font-bold text-emerald-400 mb-2 border-b border-slate-600 pb-1">${egg.name} Odds</h3>`;
+                this.dom.probDisplay.innerHTML = `<h3 class="font-bold text-emerald-400 mb-2 border-b border-slate-600 pb-1">${egg.name} Fixed Odds</h3>`;
                 
                 const probs = egg.getProbabilities();
-                // Sortiere nach Wahrscheinlichkeit absteigend
                 probs.sort((a, b) => parseFloat(b.percentage) - parseFloat(a.percentage));
 
                 probs.forEach(p => {
@@ -1278,7 +1292,6 @@
                     if (p.pet.rarity === 'Divine') colorClass = 'text-sky-400';
                     if (p.pet.rarity === 'Secret') colorClass = 'text-red-500 font-bold';
 
-                    // Formatierung mit Komma für den gewünschten Look
                     const formattedPercent = p.percentage.toString().replace('.', ',');
 
                     const row = document.createElement('div');
@@ -1297,7 +1310,6 @@
             renderInventory: function(inventory) {
                 this.dom.inventory.innerHTML = '';
                 
-                // Clear and rebuild super slots dynamically
                 State.adjustSuperSlots();
                 this.dom.superSlotsContainer.innerHTML = '';
                 const maxSuperSlots = State.maxSuperSlots;
@@ -1312,14 +1324,12 @@
                     this.dom.superSlotsContainer.appendChild(slotDiv);
                 }
                 
-                // Reset Fusion Slots visually
                 for(let i=0; i<3; i++) {
                     this.dom.fusionSlots[i].innerHTML = `<span class="pointer-events-none text-xs">Slot ${i+1}</span>`;
                 }
                 
                 this.dom.invCount.innerText = `${inventory.length} Pets`;
                 
-                // Sorting Logic
                 let sortedInv = [...inventory];
                 const rarityLevels = { 'Common': 0, 'Uncommon': 1, 'Rare': 2, 'Epic': 3, 'Legendary': 4, 'Mythic': 5, 'Divine': 6, 'Secret': 7 };
                 
@@ -1338,7 +1348,6 @@
                 } else if (this.sortType === 'name') {
                     sortedInv.sort((a, b) => a.petData.name.localeCompare(b.petData.name));
                 } else if (this.sortType === 'levelup') {
-                    // Sortiere nach fehlenden Erfahrungspunkten zum nächsten Level (wer am nächsten dran ist, kommt zuerst)
                     sortedInv.sort((a, b) => {
                         const missingA = a.petData.nextLevelXp - a.petData.xp;
                         const missingB = b.petData.nextLevelXp - b.petData.xp;
@@ -1361,12 +1370,10 @@
                     if (item.petData.rarity === 'Divine') borderClass = 'border-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.5)]';
                     if (item.petData.rarity === 'Secret') borderClass = 'border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]';
 
-                    // Dynamische Einkommenskalkulation für das Rendering
                     const currentIncome = item.petData.baseIncome * item.petData.level;
 
-                    // Komplexe HTML Struktur mit IDs für spätere dynamische Updates ohne Ruckler
                     const cardHtml = `
-                        <div id="inc-text-${item.uid}" class="absolute top-1 left-1 bg-slate-900 px-1 rounded text-[10px] font-mono text-emerald-400">€${currentIncome.toFixed(2)}/s</div>
+                        <div id="inc-text-${item.uid}" class="absolute top-1 left-1 bg-slate-900 px-1 rounded text-[10px] font-mono text-emerald-400">€${currentIncome.toFixed(4)}/s</div>
                         <div id="lvl-text-${item.uid}" class="absolute top-1 right-1 bg-slate-900 px-1 rounded text-[10px] text-yellow-400">Lvl ${item.petData.level}</div>
                         <div class="text-4xl mb-1 mt-3 pointer-events-none">${item.petData.emoji}</div>
                         <div class="text-[10px] font-bold w-full truncate pointer-events-none text-center">${item.petData.name}</div>
@@ -1375,7 +1382,6 @@
                         </div>
                     `;
 
-                    // Prüfe komplexe Logik für Super Slot Rendering
                     if (State.superPetUids.includes(item.uid)) {
                         const slotIndex = State.superPetUids.indexOf(item.uid);
                         const slotEl = document.getElementById(`super-slot-${slotIndex}`);
@@ -1391,7 +1397,6 @@
                             slotEl.appendChild(superCard);
                         }
                     } else if (State.fusionSlots.includes(item.uid)) {
-                        // Render in Fusion Slot
                         const slotIndex = State.fusionSlots.indexOf(item.uid);
                         this.dom.fusionSlots[slotIndex].innerHTML = '';
                         
@@ -1399,7 +1404,6 @@
                         fusionCard.className = `pet-card bg-slate-800 p-1 rounded border ${borderClass} w-full h-full flex flex-col items-center justify-center text-center relative cursor-move scale-90`;
                         fusionCard.draggable = true;
                         fusionCard.ondragstart = (e) => this.dragStart(e, item.uid);
-                        // Simplified card for small fusion slot
                         fusionCard.innerHTML = `
                             <div class="text-3xl pointer-events-none">${item.petData.emoji}</div>
                             <div class="text-[8px] font-bold truncate w-full pointer-events-none mt-1 text-slate-300">Lvl ${item.petData.level}</div>
@@ -1424,14 +1428,12 @@
                     }
                 });
                 
-                // Update Fusion Button State
                 if (fusionReadyCount === 3 && fusionIsValid) {
                     this.dom.fuseButton.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-purple-700');
                     this.dom.fuseButton.classList.add('bg-purple-500', 'animate-pulse', 'shadow-[0_0_15px_rgba(168,85,247,0.8)]');
                     this.dom.fuseButton.innerText = "FUSE PETS NOW!";
                     this.dom.fuseButton.disabled = false;
                     
-                    // Show Preview
                     const baseItem = State.inventory.find(i => i.uid === State.fusionSlots[0]);
                     if(baseItem) {
                         const newLvl = baseItem.petData.fusionLevel + 1;
@@ -1459,7 +1461,6 @@
                     this.dom.fusionPreview.innerHTML = '';
                 }
 
-                // Fill any empty super slots with placeholder text
                 for(let i=0; i < maxSuperSlots; i++) {
                     const slotEl = document.getElementById(`super-slot-${i}`);
                     if (slotEl && slotEl.innerHTML === '') {
@@ -1468,34 +1469,65 @@
                 }
             },
 
-            playHatchAnimation: function(egg, pulledPets) {
+            // --- NEUE QUEUE UI FUNKTIONEN ---
+            updateQueueUI: function(queue) {
+                if (queue.length > 0) {
+                    this.dom.queueCounter.classList.remove('hidden');
+                    this.dom.queueAmount.innerText = queue.length;
+                } else {
+                    this.dom.queueCounter.classList.add('hidden');
+                    if (!State.isHatchAnimating) {
+                        this.dom.hatchDisplay.innerHTML = `
+                            <div class="text-slate-500 mb-4">Select an egg to open!</div>
+                            <div class="text-6xl opacity-50">🥚</div>
+                        `;
+                    }
+                }
+            },
+
+            renderHatchTick: function(task) {
                 const display = this.dom.hatchDisplay;
                 
-                // Analysiere die gezogenen Tiere für die korrekte Animationsart des Eies
+                // ProgressBar Breite berechnen
+                let percent = ((task.maxTime - task.timeLeft) / task.maxTime) * 100;
+                
+                display.innerHTML = `
+                    <div class="text-slate-400 mb-2 font-bold text-xl">Warming up ${task.egg.name}...</div>
+                    <div class="text-8xl egg-shake mb-4">🥚</div>
+                    <div class="w-full max-w-xs bg-slate-800 h-4 mt-2 rounded-full border border-slate-600 overflow-hidden relative">
+                        <div class="bg-emerald-500 h-full transition-all duration-100 ease-linear" style="width: ${percent}%"></div>
+                        <div class="absolute inset-0 flex justify-center items-center text-[10px] font-bold text-white shadow-black drop-shadow-md">
+                            ${task.timeLeft.toFixed(1)}s
+                        </div>
+                    </div>
+                `;
+            },
+
+            playHatchAnimation: function(task) {
+                const display = this.dom.hatchDisplay;
+                
+                let pulledPets = [];
+                if (task.isJackpot) {
+                    for(let i=0; i<5; i++) pulledPets.push(task.petResult);
+                } else {
+                    pulledPets.push(task.petResult);
+                }
+
                 const rarityLevels = { 'Common': 0, 'Uncommon': 1, 'Rare': 2, 'Epic': 3, 'Legendary': 4, 'Mythic': 5, 'Divine': 6, 'Secret': 7 };
                 const maxRarity = pulledPets.reduce((max, pet) => {
                     return Math.max(max, rarityLevels[pet.rarity] || 0);
                 }, 0);
 
-                // Wähle Effekte basierend auf der Seltenheit aus
                 let shakeClass = 'egg-shake';
-                let waitTime = 2000;
-                if (maxRarity >= 3) { shakeClass = 'epic-shake-anim'; waitTime = 3000; }
-                if (maxRarity >= 6) { shakeClass = 'secret-shake-anim'; waitTime = 4000; }
+                if (maxRarity >= 3) shakeClass = 'epic-shake-anim';
+                if (maxRarity >= 6) shakeClass = 'secret-shake-anim';
 
-                // 1. Initial State - Ei wackelt
                 display.innerHTML = `
-                    <div class="text-slate-400 mb-4 animate-pulse font-bold text-xl">Opening ${egg.name}...</div>
+                    <div class="text-emerald-400 mb-4 animate-pulse font-bold text-2xl">HATCHING!</div>
                     <div class="text-8xl ${shakeClass}">🥚</div>
                 `;
 
-                // Deaktiviere weitere Käufe während der Animation
-                GameController.isHatching = true;
-
-                // 2. Warte kurz, dann Brawl Stars Reveal abspielen
                 setTimeout(() => {
-                    
-                    // Bereite das HTML für alle gezogenen Tiere vor (ob 1 oder 3)
                     let petsHtml = pulledPets.map((resultPet, index) => {
                         let rarityColor = 'text-emerald-400';
                         let glowClass = 'common-glow';
@@ -1508,7 +1540,6 @@
                         if (resultPet.rarity === 'Divine') { rarityColor = 'text-sky-400 font-bold'; glowClass = 'divine-glow'; }
                         if (resultPet.rarity === 'Secret') { rarityColor = 'text-red-500 font-black'; glowClass = 'secret-glow'; }
 
-                        // Versetzter Start der Animation, wenn mehrere Tiere schlüpfen
                         let delay = index * 0.3;
 
                         return `
@@ -1527,15 +1558,16 @@
                         </div>
                     `;
 
-                    // Belohnung hinzufügen
                     pulledPets.forEach(p => State.addPet(p));
                     
-                    // Animations-Sperre aufheben, je nachdem wie viele Tiere schlüpfen
+                    // Schließe Animation ab und entferne aus Queue
                     setTimeout(() => {
-                        GameController.isHatching = false;
-                    }, 1000 + (pulledPets.length * 300));
+                        State.isHatchAnimating = false;
+                        State.hatchQueue.shift(); // Entfernt das erste Element
+                        GameEvents.emit('state_queue_updated', State.hatchQueue);
+                    }, 1500 + (pulledPets.length * 300));
 
-                }, waitTime); 
+                }, 1000); 
             }
         };
 
@@ -1543,7 +1575,6 @@
          * Game Controller: Verbindet UI-Aktionen mit der State/Logik
          */
         const GameController = {
-            isHatching: false,
 
             setAutoEquipStrategy: function(strategy) {
                 State.autoEquipStrategy = strategy;
@@ -1551,8 +1582,6 @@
             },
 
             buyEggCustom: function(eggId) {
-                if (this.isHatching) return; // Verhindert Spamming
-
                 const egg = State.eggs.find(e => e.id === eggId);
                 if (!egg || !egg.unlocked) return;
 
@@ -1564,35 +1593,24 @@
                 const totalCost = egg.cost * amount;
 
                 if (State.deductBalance(totalCost)) {
-                    // Zeige die Quoten für das gekaufte Ei an
                     State.setActiveEggDisplay(egg.id);
                     
-                    // Ziehe die entsprechende Anzahl an Tieren
-                    let pulledPets = [];
-                    let gotJackpot = false;
-                    
                     for(let i = 0; i < amount; i++) {
-                        let pet = ProbabilityEngine.drawPet(egg);
+                        let petResult = ProbabilityEngine.drawPet(egg);
+                        let isJackpot = Math.random() < 0.01;
                         
-                        // 1% Chance auf einen 5x Jackpot
-                        if (Math.random() < 0.01) {
-                            for (let j = 0; j < 5; j++) {
-                                pulledPets.push(pet);
-                            }
-                            gotJackpot = true;
-                        } else {
-                            pulledPets.push(pet);
-                        }
+                        let task = new HatchQueueItem(egg, petResult, isJackpot);
+                        State.queueHatchTask(task);
                     }
                     
-                    if (gotJackpot) {
-                        UI_System.showModal('JACKPOT!', 'Unbelievable! You hit the 1% Jackpot and pulled a pet 5 TIMES from a single egg!', 'success');
+                    // UI Info wenn viele Eier gekauft
+                    if (amount > 1) {
+                        UI_System.dom.hatchingArena.classList.add('click-pulse');
+                        setTimeout(() => UI_System.dom.hatchingArena.classList.remove('click-pulse'), 200);
                     }
-                    
-                    // Spiele Animation
-                    UI_System.playHatchAnimation(egg, pulledPets);
+
                 } else {
-                    UI_System.showModal('Not enough Funds', `You need ${totalCost.toFixed(2)} € to buy ${amount} egg(s).`, 'error');
+                    UI_System.showModal('Not enough Funds', `You need ${totalCost.toFixed(2)} € to queue ${amount} egg(s).`, 'error');
                 }
             },
             
@@ -1600,19 +1618,27 @@
                 State.buyUpgrade(upgradeId);
             },
 
+            manualClick: function() {
+                // Neues Clicker Feature bringt direkt Geld basierend auf dem Einkommen
+                if (!State.hasFeature('feature_clicker')) return;
+                
+                const btn = UI_System.dom.btnManualClick;
+                btn.classList.add('click-pulse');
+                setTimeout(() => btn.classList.remove('click-pulse'), 200);
+
+                let clickValue = 0.5 + (State.totalIncome * 0.1); // Basis + 10% vom DPS
+                State.addBalance(clickValue);
+            },
+
             autoEquipBest: function() {
                 if (!State.hasFeature('feature_auto_equip')) return;
                 
-                // Filtert alle Tiere heraus, die nicht im Fusions-Schrein sind
                 let availablePets = State.inventory.filter(item => !State.fusionSlots.includes(item.uid));
-                
-                // Sortiere nach dem höchsten Basiswert
                 availablePets.sort((a, b) => (b.petData.baseIncome * b.petData.level) - (a.petData.baseIncome * a.petData.level));
                 
                 State.clearSuperSlots();
                 let max = State.maxSuperSlots;
                 
-                // Setze die stärksten Pets in die verfügbaren Slots
                 for(let i = 0; i < max && i < availablePets.length; i++) {
                     State.setSuperPet(i, availablePets[i].uid);
                 }
@@ -1623,20 +1649,17 @@
                 
                 let groups = {};
                 
-                // Gruppiere die Tiere nach ihrer ID und ihrem Fusions-Level
                 State.inventory.forEach(item => {
-                    if (State.superPetUids.includes(item.uid)) return; // Ignoriere ausgerüstete Tiere
-                    if (State.fusionSlots.includes(item.uid)) return; // Ignoriere Tiere die schon drin sind
+                    if (State.superPetUids.includes(item.uid)) return; 
+                    if (State.fusionSlots.includes(item.uid)) return; 
                     
                     let key = item.petData.id + '_' + item.petData.fusionLevel;
                     if (!groups[key]) groups[key] = [];
-                    // Only group if under 5 stars
                     if (item.petData.fusionLevel < 5) {
                         groups[key].push(item);
                     }
                 });
                 
-                // Finde die erste Gruppe mit mindestens 3 Tieren
                 for (let key in groups) {
                     if (groups[key].length >= 3) {
                         let toFuse = groups[key].slice(0, 3);
@@ -1651,14 +1674,12 @@
             },
             
             fusePets: function() {
-                // Get the items from state
                 const slotUids = State.fusionSlots;
                 if (slotUids.includes(null)) return;
                 
                 const items = slotUids.map(uid => State.inventory.find(i => i.uid === uid));
                 if (items.includes(undefined)) return;
                 
-                // Check if identical type AND identical fusion level
                 const firstId = items[0].petData.id;
                 const firstFusionLevel = items[0].petData.fusionLevel;
                 const allIdentical = items.every(i => i.petData.id === firstId && i.petData.fusionLevel === firstFusionLevel);
@@ -1673,33 +1694,32 @@
                     return;
                 }
                 
-                // Create fused pet data
                 const basePet = items[0].petData;
                 const newLevel = items.reduce((sum, item) => sum + item.petData.level, 0);
-                const newIncome = basePet.baseIncome * 3; // Huge income boost! 300%
+                
+                // Fusion Power Upgrade miteinbeziehen (Standard x4 wegen Hardcore-Mode!)
+                let fusionMultiplier = 4 + State.getUpgradeMultiplier('fusion_power'); 
+                const newIncome = basePet.baseIncome * fusionMultiplier; 
+                
                 const newFusionLevel = basePet.fusionLevel + 1;
                 
-                // Remove old pets
                 slotUids.forEach(uid => State.removePetByUid(uid));
                 
-                // Generate clear name format using stars
                 let cleanName = basePet.name.replace(/^[⭐\s]+/, '');
                 const starString = "⭐".repeat(newFusionLevel);
                 const newName = `${starString} ${cleanName}`;
                 
-                // Add new fused pet
-                const fusedPet = new PetModel(basePet.id, newName, basePet.emoji, basePet.baseWeight, basePet.rarity, newIncome);
+                const fusedPet = new PetModel(basePet.id, newName, basePet.emoji, basePet.weight, basePet.rarity, newIncome);
                 fusedPet.level = newLevel;
-                fusedPet.nextLevelXp = basePet.nextLevelXp * 1.2;
+                fusedPet.nextLevelXp = basePet.nextLevelXp * 1.5;
                 fusedPet.fusionLevel = newFusionLevel;
                 
                 State.addPet(fusedPet);
                 
-                // Reset slots
                 State._fusionSlots = [null, null, null];
                 GameEvents.emit('state_fusion_updated', State._fusionSlots);
                 
-                UI_System.showModal('Fusion Successful!', `You created a Level ${newLevel} ${newName}! It earns 3x base income and extra XP.`, 'success');
+                UI_System.showModal('Fusion Successful!', `You created a Level ${newLevel} ${newName}! It earns massively increased income and extra XP.`, 'success');
             },
 
             generateSaveCode: function() {
@@ -1717,7 +1737,6 @@
                 navigator.clipboard.writeText(code).then(() => {
                     UI_System.showModal('Copied!', 'Your save code has been copied to your clipboard.', 'success');
                 }).catch(err => {
-                    // Fallback for older browsers
                     UI_System.dom.saveDataTextarea.select();
                     document.execCommand('copy');
                     UI_System.showModal('Copied!', 'Your save code has been copied.', 'success');
@@ -1747,7 +1766,6 @@
             const loop = new GameLoop();
             loop.start();
             
-            // Setze initiales Ei für die Wahrscheinlichkeitsanzeige
             State.setActiveEggDisplay('egg_basic');
         };
 
