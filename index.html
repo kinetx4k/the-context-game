@@ -115,7 +115,7 @@
                 </div>
                 <div class="flex items-center justify-between">
                     <label class="text-xs">Universe Limit</label>
-                    <span class="text-[10px] text-gray-400">5000 Units</span>
+                    <span class="text-[10px] text-gray-400">10000 Units</span>
                 </div>
             </div>
 
@@ -218,7 +218,7 @@
         let startPos = { x: 0, y: 0 }, currentMousePos = { x: 0, y: 0 };
         let camera = { x: 0, y: 0, zoom: 1 };
         
-        const UNIVERSE_LIMIT = 5000; // Grenze des Universums
+        const UNIVERSE_LIMIT = 10000; // Größere Grenze des Universums
 
         const types = {
             planet: { mass: 100, radius: 12, color: '#4a90e2', trailColor: 'rgba(74, 144, 226, 0.1)' },
@@ -271,9 +271,11 @@
                 this.rotSpeed = (Math.random() - 0.5) * 0.01;
             }
             update() {
-                if (this.radius < this.maxRadius) this.radius += this.expansion;
-                this.opacity -= 0.0002;
-                this.rotation += this.rotSpeed;
+                if (!isPaused) {
+                    if (this.radius < this.maxRadius) this.radius += this.expansion;
+                    this.opacity -= 0.0002;
+                    this.rotation += this.rotSpeed;
+                }
             }
             draw() {
                 ctx.save();
@@ -281,7 +283,7 @@
                 ctx.rotate(this.rotation);
                 const grad = ctx.createRadialGradient(0, 0, this.radius * 0.1, 0, 0, this.radius);
                 grad.addColorStop(0, this.color + '00');
-                grad.addColorStop(0.2, this.color + Math.floor(this.opacity * 255).toString(16).padStart(2, '0'));
+                grad.addColorStop(0.2, this.color + Math.floor(Math.min(1, Math.max(0, this.opacity)) * 255).toString(16).padStart(2, '0'));
                 grad.addColorStop(0.5, '#ffffff22');
                 grad.addColorStop(1, 'transparent');
                 ctx.fillStyle = grad;
@@ -475,6 +477,8 @@
          */
         function applyPhysics() {
             if (isPaused) return;
+            
+            // Objekte berechnen
             for(let i=0; i<objects.length; i++) {
                 const b1 = objects[i];
                 for(let j=i+1; j<objects.length; j++) {
@@ -505,6 +509,24 @@
                     }
                 }
             }
+
+            // Nebel-Einsaugen berechnen
+            nebulae.forEach(n => {
+                objects.forEach(bh => {
+                    if (bh.type === 'blackhole') {
+                        const dx = bh.x - n.x, dy = bh.y - n.y;
+                        const d2 = dx*dx + dy*dy, d = Math.sqrt(d2);
+                        if (d < 1000) { // Saug-Reichweite
+                            const force = 3.0 * (1 - d/1000);
+                            n.x += (dx/d) * force;
+                            n.y += (dy/d) * force;
+                            // Wenn im schwarzen Loch, dann weg
+                            if (d < bh.radius) n.opacity = 0;
+                        }
+                    }
+                });
+            });
+
             objects = objects.filter(o => !o.destroyed);
             nebulae = nebulae.filter(n => n.opacity > 0);
             nebulae.forEach(n => n.update());
@@ -563,7 +585,7 @@
             // Universum Grenze Zeichnen
             ctx.beginPath();
             ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-            ctx.lineWidth = 5/camera.zoom;
+            ctx.lineWidth = 10/camera.zoom;
             ctx.arc(0, 0, UNIVERSE_LIMIT, 0, Math.PI*2);
             ctx.stroke();
 
