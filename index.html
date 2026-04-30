@@ -133,7 +133,10 @@
             <!-- Shop Area -->
             <div class="lg:col-span-2 space-y-6">
                 <div class="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
-                    <h2 class="text-2xl font-bold mb-4 border-b border-slate-600 pb-2">Egg Shop</h2>
+                    <h2 class="text-2xl font-bold mb-4 border-b border-slate-600 pb-2 flex justify-between items-center">
+                        <span>Egg Shop</span>
+                        <span class="text-xs text-yellow-400 font-normal bg-yellow-900/30 px-2 py-1 rounded">Buy 10 of your highest Egg to unlock the next!</span>
+                    </h2>
                     
                     <div id="eggs-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Eier werden hier dynamisch eingefügt -->
@@ -306,7 +309,7 @@
                     
                     <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
                         <h4 class="text-lg font-bold text-emerald-400 mb-2">🥚 Hatching Eggs</h4>
-                        <p>Buy eggs to hatch new pets. <strong>Eggs now have a hatching cooldown!</strong> If you buy multiple, they will queue up and hatch one after another. The rarer the pet, the more money it brings per second.</p>
+                        <p>Buy eggs to hatch new pets. <strong>Eggs now have a hatching cooldown!</strong> If you buy multiple, they will queue up and hatch one after another. You start with one egg. Buy 10 of your highest tier egg to discover new, infinite egg tiers!</p>
                     </div>
 
                     <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
@@ -368,14 +371,14 @@
                 this.id = id;
                 this.name = name;
                 this.emoji = emoji;
-                this.weight = weight; // Festes Gewicht für die Wahrscheinlichkeit (Keine dynamische Änderung mehr)
+                this.weight = weight; // Festes Gewicht für die Wahrscheinlichkeit
                 this.rarity = rarity; // 'Common', 'Rare', 'Epic', 'Legendary', 'Mythic', 'Divine', 'Secret'
                 
                 // Income and Level Progression (Deutlich generft für schwereres Spiel)
                 this.baseIncome = baseIncome;
                 this.level = 1;
                 this.xp = 0;
-                this.nextLevelXp = 250; // Schwerer zu leveln
+                this.nextLevelXp = 250; 
                 this.fusionLevel = 0;
             }
         }
@@ -406,12 +409,13 @@
                 this.name = name;
                 this.cost = cost;
                 this.description = description;
-                this.baseHatchTime = hatchTimeSeconds; // Neue Wartezeit-Funktion
+                this.baseHatchTime = hatchTimeSeconds; 
                 this.pets = petsList; 
                 this.unlocked = true; 
+                this.purchasedCount = 0; // Neu: Zählt die Käufe dieses Eies
             }
             
-            // Wahrscheinlichkeiten sind nun statisch! Keine dynamische Veränderung mehr.
+            // Wahrscheinlichkeiten sind statisch
             getProbabilities() {
                 let totalWeight = this.pets.reduce((sum, pet) => sum + pet.weight, 0);
                 return this.pets.map(pet => ({
@@ -428,86 +432,108 @@
                 this.petResult = petResult; 
                 this.isJackpot = isJackpot;
                 
-                // Berechne die genaue Zeit mit dem neuen Upgrade-Multiplikator
                 let speedBonus = State.getUpgradeMultiplier('hatch_speed');
-                // Wenn Multiplier 1.0 (Lvl 0) -> volle Zeit. Wenn 1.5 -> Zeit / 1.5
                 this.timeLeft = this.egg.baseHatchTime / speedBonus;
                 this.maxTime = this.timeLeft;
             }
         }
 
         /**
-         * Spiel-Datenbank: Definition aller Eier und Tiere mit stark angepasster Ökonomie
+         * Spiel-Datenbank: Definition aller Eier und Tiere, nun mit unendlicher prozeduraler Generierung!
          */
         const GameDatabase = {
-            createEggs: () => {
-                // Einkommen massiv reduziert für Hardcore Modus!
-                const egg1Pets = [
-                    new PetModel('e1_p1', 'Field Mouse', '🐭', 550, 'Common', 0.001),
-                    new PetModel('e1_p2', 'Brown Dog', '🐶', 300, 'Common', 0.002),
-                    new PetModel('e1_p3', 'Stray Cat', '🐱', 100, 'Uncommon', 0.005),
-                    new PetModel('e1_p4', 'Pigeon', '🐦', 40, 'Uncommon', 0.008),
-                    new PetModel('e1_p5', 'Goldfish', '🐟', 10, 'Rare', 0.015)
+            generateEgg: (index) => {
+                // Basis-Eier 0 bis 4
+                if (index === 0) {
+                    return new EggModel('egg_basic', 'Starter Egg', 50.00, 'Basic pets. Hatch Time: 3s.', 3, [
+                        new PetModel('e0_p1', 'Field Mouse', '🐭', 550, 'Common', 0.001),
+                        new PetModel('e0_p2', 'Brown Dog', '🐶', 300, 'Common', 0.002),
+                        new PetModel('e0_p3', 'Stray Cat', '🐱', 100, 'Uncommon', 0.005),
+                        new PetModel('e0_p4', 'Pigeon', '🐦', 40, 'Uncommon', 0.008),
+                        new PetModel('e0_p5', 'Goldfish', '🐟', 10, 'Rare', 0.015)
+                    ]);
+                }
+                if (index === 1) {
+                    return new EggModel('egg_rare', 'Forest Egg', 600.00, 'Rare forest animals. Hatch Time: 6s.', 6, [
+                        new PetModel('e1_p1', 'Red Fox', '🦊', 450, 'Uncommon', 0.02),
+                        new PetModel('e1_p2', 'Brown Bear', '🐻', 280, 'Rare', 0.03),
+                        new PetModel('e1_p3', 'Forest Owl', '🦉', 170, 'Rare', 0.05),
+                        new PetModel('e1_p4', 'Wild Boar', '🐗', 75, 'Epic', 0.10),
+                        new PetModel('e1_p5', 'Green Frog', '🐸', 25, 'Epic', 0.15)
+                    ]);
+                }
+                if (index === 2) {
+                    return new EggModel('egg_epic', 'Mystic Egg', 3500.00, 'Epic beasts and a secret. Hatch Time: 12s.', 12, [
+                        new PetModel('e2_p1', 'Savannah Lion', '🦁', 320, 'Rare', 0.20),
+                        new PetModel('e2_p2', 'Jungle Tiger', '🐯', 150, 'Epic', 0.35),
+                        new PetModel('e2_p3', 'Giant Elephant', '🐘', 85, 'Epic', 0.50),
+                        new PetModel('e2_p4', 'Rhino', '🦏', 35, 'Legendary', 0.80),
+                        new PetModel('e2_p5', 'Hippopotamus', '🦛', 15, 'Legendary', 1.20),
+                        new PetModel('e2_secret', 'Ancient Dragon', '🐉', 1.5, 'Secret', 5.00) 
+                    ]);
+                }
+                if (index === 3) {
+                    return new EggModel('egg_ocean', 'Ocean Egg', 15000.00, 'Deep sea creatures. Hatch Time: 25s.', 25, [
+                        new PetModel('e3_p1', 'Sea Turtle', '🐢', 260, 'Epic', 2.00),
+                        new PetModel('e3_p2', 'Dolphin', '🐬', 130, 'Epic', 3.50),
+                        new PetModel('e3_p3', 'Shark', '🦈', 55, 'Legendary', 5.00),
+                        new PetModel('e3_p4', 'Whale', '🐳', 20, 'Mythic', 8.00),
+                        new PetModel('e3_p5', 'Octopus', '🐙', 8, 'Mythic', 12.00),
+                        new PetModel('e3_secret', 'Kraken', '🦑', 0.8, 'Secret', 35.00)
+                    ]);
+                }
+                if (index === 4) {
+                    return new EggModel('egg_galactic', 'Galactic Egg', 75000.00, 'Cosmic entities. Hatch Time: 60s.', 60, [
+                        new PetModel('e4_p1', 'Alien', '👽', 190, 'Legendary', 15.00),
+                        new PetModel('e4_p2', 'Astronaut', '👨‍🚀', 95, 'Legendary', 25.00),
+                        new PetModel('e4_p3', 'Comet', '☄️', 45, 'Mythic', 40.00),
+                        new PetModel('e4_p4', 'UFO', '🛸', 18, 'Mythic', 65.00),
+                        new PetModel('e4_p5', 'Star', '⭐', 4, 'Divine', 100.00),
+                        new PetModel('e4_secret', 'Black Hole', '🌌', 0.2, 'Secret', 500.00)
+                    ]);
+                }
+
+                // Prozedurale Generierung für Index >= 5 (Unendliche Eier)
+                const adjectives = ['Void', 'Quantum', 'Astral', 'Ethereal', 'Chaos', 'Radiant', 'Abyssal', 'Cosmic', 'Omni', 'Glitch', 'Phantom', 'Neon', 'Infernal', 'Celestial'];
+                const nouns = ['Entity', 'Beast', 'Titan', 'Anomaly', 'Spirit', 'Construct', 'Overlord', 'Singularity', 'Dragon', 'God', 'Wraith', 'Core', 'Vortex', 'Emperor'];
+                const emojis = ['🌀', '👁️', '💠', '🔮', '🔱', '🌌', '☄️', '🔥', '⚡', '✨', '💀', '👽', '🌋', '🩸'];
+
+                // Deterministische Auswahl basierend auf dem Index
+                const adj = adjectives[(index * 3) % adjectives.length];
+                const noun = nouns[(index * 7) % nouns.length];
+                const eggName = `${adj} Egg`;
+                
+                // Extreme Preissteigerung
+                const cost = 75000 * Math.pow(8, index - 4); 
+                // Maximale Schlüpfzeit bei 5 Minuten (300s) gekappt
+                const hatchTime = Math.min(300, 60 + (index - 4) * 30); 
+
+                const petBaseIncome = 100 * Math.pow(6, index - 4);
+
+                const procPets = [
+                    new PetModel(`e${index}_p1`, `${adj} Minion`, emojis[(index*2)%emojis.length], 200, 'Legendary', petBaseIncome),
+                    new PetModel(`e${index}_p2`, `${noun} Guard`, emojis[(index*4)%emojis.length], 100, 'Legendary', petBaseIncome * 1.5),
+                    new PetModel(`e${index}_p3`, `${adj} ${noun}`, emojis[(index*5)%emojis.length], 40, 'Mythic', petBaseIncome * 2.5),
+                    new PetModel(`e${index}_p4`, `True ${noun}`, emojis[(index*6)%emojis.length], 15, 'Mythic', petBaseIncome * 4),
+                    new PetModel(`e${index}_p5`, `Supreme ${adj}`, emojis[(index*8)%emojis.length], 5, 'Divine', petBaseIncome * 7),
+                    new PetModel(`e${index}_secret`, `The ${adj} ${noun}`, emojis[(index*9)%emojis.length], 0.1, 'Secret', petBaseIncome * 25)
                 ];
 
-                const egg2Pets = [
-                    new PetModel('e2_p1', 'Red Fox', '🦊', 450, 'Uncommon', 0.02),
-                    new PetModel('e2_p2', 'Brown Bear', '🐻', 280, 'Rare', 0.03),
-                    new PetModel('e2_p3', 'Forest Owl', '🦉', 170, 'Rare', 0.05),
-                    new PetModel('e2_p4', 'Wild Boar', '🐗', 75, 'Epic', 0.10),
-                    new PetModel('e2_p5', 'Green Frog', '🐸', 25, 'Epic', 0.15)
-                ];
-
-                const egg3Pets = [
-                    new PetModel('e3_p1', 'Savannah Lion', '🦁', 320, 'Rare', 0.20),
-                    new PetModel('e3_p2', 'Jungle Tiger', '🐯', 150, 'Epic', 0.35),
-                    new PetModel('e3_p3', 'Giant Elephant', '🐘', 85, 'Epic', 0.50),
-                    new PetModel('e3_p4', 'Rhino', '🦏', 35, 'Legendary', 0.80),
-                    new PetModel('e3_p5', 'Hippopotamus', '🦛', 15, 'Legendary', 1.20),
-                    new PetModel('e3_secret', 'Ancient Dragon', '🐉', 1.5, 'Secret', 5.00) 
-                ];
-
-                const egg4Pets = [
-                    new PetModel('e4_p1', 'Sea Turtle', '🐢', 260, 'Epic', 2.00),
-                    new PetModel('e4_p2', 'Dolphin', '🐬', 130, 'Epic', 3.50),
-                    new PetModel('e4_p3', 'Shark', '🦈', 55, 'Legendary', 5.00),
-                    new PetModel('e4_p4', 'Whale', '🐳', 20, 'Mythic', 8.00),
-                    new PetModel('e4_p5', 'Octopus', '🐙', 8, 'Mythic', 12.00),
-                    new PetModel('e4_secret', 'Kraken', '🦑', 0.8, 'Secret', 35.00)
-                ];
-
-                const egg5Pets = [
-                    new PetModel('e5_p1', 'Alien', '👽', 190, 'Legendary', 15.00),
-                    new PetModel('e5_p2', 'Astronaut', '👨‍🚀', 95, 'Legendary', 25.00),
-                    new PetModel('e5_p3', 'Comet', '☄️', 45, 'Mythic', 40.00),
-                    new PetModel('e5_p4', 'UFO', '🛸', 18, 'Mythic', 65.00),
-                    new PetModel('e5_p5', 'Star', '⭐', 4, 'Divine', 100.00),
-                    new PetModel('e5_secret', 'Black Hole', '🌌', 0.2, 'Secret', 500.00)
-                ];
-
-                // Preise massiv erhöht, Zeiten hinzugefügt
-                return [
-                    new EggModel('egg_basic', 'Starter Egg', 50.00, 'Basic pets. Hatch Time: 3s.', 3, egg1Pets),
-                    new EggModel('egg_rare', 'Forest Egg', 600.00, 'Rare forest animals. Hatch Time: 6s.', 6, egg2Pets),
-                    new EggModel('egg_epic', 'Mystic Egg', 3500.00, 'Epic beasts and a secret. Hatch Time: 12s.', 12, egg3Pets),
-                    new EggModel('egg_ocean', 'Ocean Egg', 15000.00, 'Deep sea creatures. Hatch Time: 25s.', 25, egg4Pets),
-                    new EggModel('egg_galactic', 'Galactic Egg', 75000.00, 'Cosmic entities. Hatch Time: 60s.', 60, egg5Pets)
-                ];
+                return new EggModel(`egg_proc_${index}`, eggName, cost, `Infinite Tier ${index - 3} Egg. Hatch Time: ${hatchTime}s.`, hatchTime, procPets);
             }
         };
 
         /**
-         * State Manager: Verwaltet Geld, Inventar, Zeit und die neue Queue
+         * State Manager: Verwaltet Geld, Inventar, Zeit, Queue und Unlocks
          */
         class GameState {
             constructor() {
                 this.startSetup();
-                this._eggs = GameDatabase.createEggs();
                 this._activeEggDisplay = null;
             }
 
             startSetup() {
-                this._balance = 50.00; // Startguthaben
+                this._balance = 50.00; 
                 this._inventory = [];
                 
                 this._totalIncomePerSec = 0;
@@ -516,11 +542,12 @@
                 this._autoEquipStrategy = 'lowest_level';
                 this._autoEquipTimer = 0;
                 
-                // Neues Queue System
                 this._hatchQueue = [];
                 this._isHatchAnimating = false;
 
-                // Upgrades deutlich teurer und neue Funktionen hinzugefügt
+                // Startet NUR mit dem allerersten Ei!
+                this._eggs = [GameDatabase.generateEgg(0)];
+
                 this._upgrades = [
                     new UpgradeModel('upg_income', 'Golden Touch', 'Increases all pet income by 10% per level.', 250, 2.0, 'income', 0.10),
                     new UpgradeModel('upg_xp', 'Smart Pets', 'Increases all pet XP gain by 15% per level.', 300, 2.0, 'xp', 0.15),
@@ -645,13 +672,11 @@
             }
 
             processSmoothTick(fraction) {
-                // Geld über Zeit generieren
                 if (this._totalIncomePerSec > 0) {
                     this._balance += this._totalIncomePerSec * fraction;
                     GameEvents.emit('state_balance_updated', this._balance);
                 }
 
-                // Komplexe Abarbeitung der Warteschlange
                 if (this._hatchQueue.length > 0 && !this._isHatchAnimating) {
                     let activeTask = this._hatchQueue[0];
                     activeTask.timeLeft -= fraction;
@@ -660,7 +685,6 @@
                         this._isHatchAnimating = true;
                         GameEvents.emit('event_hatch_ready', activeTask);
                     } else {
-                        // UI über die tickende Zeit informieren
                         GameEvents.emit('state_queue_tick', activeTask);
                     }
                 }
@@ -668,7 +692,6 @@
                 let needsIncomeRecalc = false;
                 const xpMultiplier = this.getUpgradeMultiplier('xp');
 
-                // Erfahrungspunkte vergeben (Schwereres Scaling)
                 this._inventory.forEach(item => {
                     let xpToGive = 2 * fraction * xpMultiplier;
                     xpToGive *= (1 + item.petData.fusionLevel);
@@ -676,11 +699,10 @@
                     
                     item.petData.xp += xpToGive;
                     
-                    // Strengeres Level-System
                     if (item.petData.xp >= item.petData.nextLevelXp) {
                         item.petData.level++;
                         item.petData.xp -= item.petData.nextLevelXp;
-                        item.petData.nextLevelXp = Math.floor(item.petData.nextLevelXp * 2.0); // Verdoppelt sich!
+                        item.petData.nextLevelXp = Math.floor(item.petData.nextLevelXp * 2.0); 
                         needsIncomeRecalc = true;
                     }
                 });
@@ -782,13 +804,14 @@
             exportSave() {
                 try {
                     const saveData = {
-                        v: 2, 
+                        v: 3, // Neue Version für das unendliche Ei-System
                         b: this._balance,
                         i: this._inventory,
                         s: this._superPetUids,
                         f: this._fusionSlots,
                         st: this._autoEquipStrategy,
-                        u: this._upgrades.map(u => ({ id: u.id, level: u.level }))
+                        u: this._upgrades.map(u => ({ id: u.id, level: u.level })),
+                        ec: this._eggs.map(e => e.purchasedCount) // Speichere die Käufe aller Eier
                     };
                     return btoa(encodeURIComponent(JSON.stringify(saveData)));
                 } catch (e) {
@@ -800,7 +823,7 @@
             importSave(saveStr) {
                 try {
                     const parsed = JSON.parse(decodeURIComponent(atob(saveStr)));
-                    if (!parsed || parsed.v !== 2) return false;
+                    if (!parsed || (parsed.v !== 2 && parsed.v !== 3)) return false;
 
                     this._balance = parsed.b || 0;
                     this._inventory = parsed.i || [];
@@ -817,6 +840,24 @@
                         });
                     }
 
+                    // Stelle die generierten Eier und deren Count wieder her
+                    if (parsed.v >= 3 && parsed.ec) {
+                        this._eggs = [];
+                        parsed.ec.forEach((count, index) => {
+                            let egg = GameDatabase.generateEgg(index);
+                            egg.purchasedCount = count;
+                            this._eggs.push(egg);
+                        });
+                    } else {
+                        // Fallback für alte v2 Spielstände, wo es 5 Eier gab
+                        this._eggs = [
+                            GameDatabase.generateEgg(0), GameDatabase.generateEgg(1), 
+                            GameDatabase.generateEgg(2), GameDatabase.generateEgg(3), 
+                            GameDatabase.generateEgg(4)
+                        ];
+                        this._eggs.forEach(e => e.purchasedCount = 10);
+                    }
+
                     this.adjustSuperSlots();
                     this.calculateTotalIncome();
                     
@@ -826,6 +867,7 @@
                     GameEvents.emit('state_super_pet_updated', this._superPetUids);
                     GameEvents.emit('state_fusion_updated', this._fusionSlots);
                     GameEvents.emit('state_inventory_updated', this._inventory);
+                    GameEvents.emit('state_eggs_updated', null); // UI der Eier aktualisieren
                     
                     return true;
                 } catch (e) {
@@ -838,7 +880,7 @@
         const State = new GameState();
 
         /**
-         * Statische Probability Engine - Nichts ändert sich mehr dynamisch.
+         * Statische Probability Engine
          */
         class ProbabilityEngine {
             static drawPet(egg) {
@@ -928,7 +970,6 @@
                     queueCounter: document.getElementById('queue-counter'),
                     queueAmount: document.getElementById('queue-amount'),
                     
-                    // Modals
                     modal: document.getElementById('message-modal'),
                     modalContent: document.getElementById('message-modal-content'),
                     modalTitle: document.getElementById('modal-title'),
@@ -959,7 +1000,6 @@
                 GameEvents.on('state_fusion_updated', () => this.renderInventory(State.inventory));
                 GameEvents.on('state_active_egg_changed', (eggId) => this.renderProbabilities(eggId));
                 
-                // Neue Queue Events
                 GameEvents.on('state_queue_updated', (q) => this.updateQueueUI(q));
                 GameEvents.on('state_queue_tick', (task) => this.renderHatchTick(task));
                 GameEvents.on('event_hatch_ready', (task) => this.playHatchAnimation(task));
@@ -1204,11 +1244,17 @@
 
             renderEggs: function() {
                 this.dom.eggsContainer.innerHTML = '';
-                State.eggs.forEach(egg => {
+                State.eggs.forEach((egg, index) => {
                     const card = document.createElement('div');
                     card.id = `egg-card-${egg.id}`;
                     card.className = 'bg-slate-700 p-4 rounded-lg border transition-all cursor-pointer flex flex-col justify-between';
                     
+                    let progressHtml = '';
+                    // Zeige den Fortschritt nur beim höchsten, aktuell freigeschalteten Ei an
+                    if (index === State.eggs.length - 1) {
+                        progressHtml = `<div class="text-[10px] text-yellow-400 mt-3 text-center font-bold border-t border-slate-600 pt-2">Purchased: ${egg.purchasedCount} / 10 to unlock next Egg!</div>`;
+                    }
+
                     card.innerHTML = `
                         <div onclick="State.setActiveEggDisplay('${egg.id}')">
                             <h3 class="text-lg font-bold text-emerald-400">${egg.name}</h3>
@@ -1226,9 +1272,10 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="mt-2 text-center text-[10px] text-slate-500 border-t border-slate-600 pt-1" onclick="State.setActiveEggDisplay('${egg.id}')">
+                        <div class="mt-2 text-center text-[10px] text-slate-500 pt-1" onclick="State.setActiveEggDisplay('${egg.id}')">
                             Click text to view odds
                         </div>
+                        ${progressHtml}
                     `;
                     
                     this.dom.eggsContainer.appendChild(card);
@@ -1469,7 +1516,7 @@
                 }
             },
 
-            // --- NEUE QUEUE UI FUNKTIONEN ---
+            // --- QUEUE UI FUNKTIONEN ---
             updateQueueUI: function(queue) {
                 if (queue.length > 0) {
                     this.dom.queueCounter.classList.remove('hidden');
@@ -1488,7 +1535,6 @@
             renderHatchTick: function(task) {
                 const display = this.dom.hatchDisplay;
                 
-                // ProgressBar Breite berechnen
                 let percent = ((task.maxTime - task.timeLeft) / task.maxTime) * 100;
                 
                 display.innerHTML = `
@@ -1560,10 +1606,9 @@
 
                     pulledPets.forEach(p => State.addPet(p));
                     
-                    // Schließe Animation ab und entferne aus Queue
                     setTimeout(() => {
                         State.isHatchAnimating = false;
-                        State.hatchQueue.shift(); // Entfernt das erste Element
+                        State.hatchQueue.shift(); 
                         GameEvents.emit('state_queue_updated', State.hatchQueue);
                     }, 1500 + (pulledPets.length * 300));
 
@@ -1595,6 +1640,9 @@
                 if (State.deductBalance(totalCost)) {
                     State.setActiveEggDisplay(egg.id);
                     
+                    // Verfolge die Anzahl der gekauften Eier
+                    egg.purchasedCount += amount;
+
                     for(let i = 0; i < amount; i++) {
                         let petResult = ProbabilityEngine.drawPet(egg);
                         let isJackpot = Math.random() < 0.01;
@@ -1603,11 +1651,20 @@
                         State.queueHatchTask(task);
                     }
                     
-                    // UI Info wenn viele Eier gekauft
+                    // Prüfen ob neues Ei freigeschaltet wurde (wenn 10 vom aktuell höchsten Ei gekauft wurden)
+                    const eggIndex = State.eggs.indexOf(egg);
+                    if (egg.purchasedCount >= 10 && eggIndex === State.eggs.length - 1) {
+                        State.eggs.push(GameDatabase.generateEgg(State.eggs.length));
+                        UI_System.showModal('New Egg Unlocked!', 'You bought enough eggs to reveal a new, more powerful Egg in the shop!', 'success');
+                    }
+
                     if (amount > 1) {
                         UI_System.dom.hatchingArena.classList.add('click-pulse');
                         setTimeout(() => UI_System.dom.hatchingArena.classList.remove('click-pulse'), 200);
                     }
+
+                    // UI für die Eier neu laden (wegen dem Counter)
+                    GameEvents.emit('state_eggs_updated', null);
 
                 } else {
                     UI_System.showModal('Not enough Funds', `You need ${totalCost.toFixed(2)} € to queue ${amount} egg(s).`, 'error');
@@ -1619,14 +1676,13 @@
             },
 
             manualClick: function() {
-                // Neues Clicker Feature bringt direkt Geld basierend auf dem Einkommen
                 if (!State.hasFeature('feature_clicker')) return;
                 
                 const btn = UI_System.dom.btnManualClick;
                 btn.classList.add('click-pulse');
                 setTimeout(() => btn.classList.remove('click-pulse'), 200);
 
-                let clickValue = 0.5 + (State.totalIncome * 0.1); // Basis + 10% vom DPS
+                let clickValue = 0.5 + (State.totalIncome * 0.1); 
                 State.addBalance(clickValue);
             },
 
@@ -1697,7 +1753,6 @@
                 const basePet = items[0].petData;
                 const newLevel = items.reduce((sum, item) => sum + item.petData.level, 0);
                 
-                // Fusion Power Upgrade miteinbeziehen (Standard x4 wegen Hardcore-Mode!)
                 let fusionMultiplier = 4 + State.getUpgradeMultiplier('fusion_power'); 
                 const newIncome = basePet.baseIncome * fusionMultiplier; 
                 
