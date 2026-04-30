@@ -3,365 +3,560 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dark Maze - Find the Light</title>
+    <title>Celestial Simulator Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body, html {
+        body {
             margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
             overflow: hidden;
-            background-color: #000;
+            background-color: #050505;
+            color: #eee;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            cursor: none;
+            user-select: none;
         }
-
         canvas {
             display: block;
         }
-
-        #ui-layer {
+        .ui-panel {
+            background: rgba(15, 15, 25, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+        .custom-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: #333;
+            outline: none;
+            border-radius: 2px;
+        }
+        .custom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #007bff;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        .btn-active {
+            background-color: #007bff !important;
+            color: white !important;
+        }
+        .stat-label {
+            font-size: 0.75rem;
+            color: #888;
+        }
+        .stat-value {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        #controls {
             position: absolute;
             top: 20px;
             left: 20px;
-            color: white;
-            pointer-events: none;
-            user-select: none;
-        }
-
-        #message-box {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 20px 40px;
-            border: 2px solid #444;
-            border-radius: 10px;
-            text-align: center;
-            transition: opacity 0.5s;
+            width: 280px;
+            padding: 20px;
             z-index: 100;
-            max-width: 400px;
         }
-
-        .hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        #level-indicator {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #444;
-        }
-
-        #ability-bar {
+        #stats {
             position: absolute;
             bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: white;
-            font-size: 1rem;
-            text-align: center;
+            left: 20px;
+            padding: 15px;
+            z-index: 100;
+        }
+        #instructions {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            font-size: 0.85rem;
             pointer-events: none;
         }
-
-        .sonar-ready { color: #00FF00; font-weight: bold; }
-        .sonar-charging { color: #666; }
-        
-        h2 { color: #4CAF50; margin-top: 0; }
-        ul { text-align: left; padding-left: 20px; }
-        li { margin-bottom: 10px; }
+        .object-type-btn {
+            transition: all 0.2s;
+        }
+        #velocity-line {
+            pointer-events: none;
+            position: absolute;
+            display: none;
+            border-top: 2px dashed rgba(255, 255, 255, 0.5);
+            transform-origin: left center;
+        }
     </style>
 </head>
 <body>
 
-    <div id="ui-layer">
-        <div id="level-indicator">Level 1</div>
-    </div>
+    <div id="controls" class="ui-panel space-y-4">
+        <h1 class="text-xl font-bold border-bottom pb-2 mb-4 border-gray-700">Universe Engine</h1>
+        
+        <div class="space-y-2">
+            <label class="text-sm">Object Type</label>
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="setObjectType('planet')" id="btn-planet" class="object-type-btn p-2 rounded bg-gray-800 text-xs hover:bg-gray-700 btn-active">Planet</button>
+                <button onclick="setObjectType('star')" id="btn-star" class="object-type-btn p-2 rounded bg-gray-800 text-xs hover:bg-gray-700">Star</button>
+                <button onclick="setObjectType('comet')" id="btn-comet" class="object-type-btn p-2 rounded bg-gray-800 text-xs hover:bg-gray-700">Comet</button>
+            </div>
+        </div>
 
-    <div id="ability-bar"></div>
+        <div class="space-y-4 pt-2">
+            <div>
+                <div class="flex justify-between text-xs mb-1">
+                    <span>Gravity (G)</span>
+                    <span id="g-val">1.0</span>
+                </div>
+                <input type="range" min="0" max="5" step="0.1" value="1" class="custom-slider" id="input-g">
+            </div>
+            
+            <div>
+                <div class="flex justify-between text-xs mb-1">
+                    <span>Simulation Speed</span>
+                    <span id="speed-val">1.0</span>
+                </div>
+                <input type="range" min="0" max="3" step="0.1" value="1" class="custom-slider" id="input-speed">
+            </div>
+        </div>
 
-    <div id="message-box">
-        <div id="tutorial">
-            <h2>Spielanleitung</h2>
-            <ul>
-                <li><strong>Start:</strong> Bewege den weißen Punkt in den gestrichelten Kreis (oben links).</li>
-                <li><strong>Ziel:</strong> Erreiche den leuchtenden grünen Punkt (unten rechts).</li>
-                <li><strong>Wände:</strong> Sie sind unsichtbar. Berührst du eine Wand oder den Rand, stirbst du.</li>
-                <li><strong>Sonar (Rechtsklick):</strong> Macht Wände kurz sichtbar. (10 Sek. Abklingzeit).</li>
-                <li><strong>Rote Punkte:</strong> Beim Aufprall entstehen Splitter. Diese bleiben an Wänden kleben und helfen dir, den Weg zu finden.</li>
-                <li><strong>Wichtig:</strong> Bewege dich langsam, um nicht versehentlich durch Wände zu springen.</li>
-            </ul>
-            <p style="color: #4CAF50; font-weight: bold;">Suche den grauen Punkt und fahre zum Start-Kreis!</p>
+        <div class="flex items-center space-x-2 py-2">
+            <input type="checkbox" id="show-trails" checked>
+            <label for="show-trails" class="text-xs">Show Orbit Trails</label>
+        </div>
+        
+        <div class="flex items-center space-x-2 py-1">
+            <input type="checkbox" id="show-grid" checked>
+            <label for="show-grid" class="text-xs">Show Grid</label>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 mt-4">
+            <button onclick="clearSystem()" class="p-2 rounded bg-red-900/40 hover:bg-red-800/60 text-xs border border-red-700/50">Clear All</button>
+            <button onclick="resetView()" class="p-2 rounded bg-gray-800 hover:bg-gray-700 text-xs">Reset View</button>
         </div>
     </div>
 
-    <canvas id="gameCanvas"></canvas>
+    <div id="stats" class="ui-panel grid grid-cols-2 gap-x-4 gap-y-2">
+        <div class="flex flex-col">
+            <span class="stat-label">Objects</span>
+            <span id="stat-count" class="stat-value">0</span>
+        </div>
+        <div class="flex flex-col">
+            <span class="stat-label">Total Mass</span>
+            <span id="stat-mass" class="stat-value">0</span>
+        </div>
+    </div>
+
+    <div id="instructions" class="ui-panel opacity-50">
+        <p>• Click and Drag: Launch object</p>
+        <p>• Mouse Wheel: Zoom in/out</p>
+        <p>• Right Click + Drag: Pan view</p>
+        <p>• C: Clear System</p>
+    </div>
+
+    <canvas id="simCanvas"></canvas>
 
     <script>
-        const canvas = document.getElementById('gameCanvas');
+        const canvas = document.getElementById('simCanvas');
         const ctx = canvas.getContext('2d');
-        const levelIndicator = document.getElementById('level-indicator');
-        const messageBox = document.getElementById('message-box');
-        const abilityBar = document.getElementById('ability-bar');
+        const G_INPUT = document.getElementById('input-g');
+        const SPEED_INPUT = document.getElementById('input-speed');
+        const G_VAL = document.getElementById('g-val');
+        const SPEED_VAL = document.getElementById('speed-val');
+        const SHOW_TRAILS = document.getElementById('show-trails');
+        const SHOW_GRID = document.getElementById('show-grid');
+        const STAT_COUNT = document.getElementById('stat-count');
+        const STAT_MASS = document.getElementById('stat-mass');
 
-        let currentLevel = 0;
-        let isDead = false;
-        let gameStarted = false;
-        let levelCleared = false; 
-        let mousePos = { x: 0, y: 0 };
-        let lastProcessedPos = { x: 0, y: 0 };
+        // Simulation State
+        let G = 1.0;
+        let timeStep = 1.0;
+        let objects = [];
+        let currentType = 'planet';
+        let isDragging = false;
+        let isPanning = false;
+        let startPos = { x: 0, y: 0 };
+        let currentMousePos = { x: 0, y: 0 };
         
-        let splats = []; 
-        let walls = []; 
-        let goal = { x: 0, y: 0, radius: 15 };
-        let startZone = { x: 50, y: 50, radius: 40 };
+        // Camera View State
+        let camera = {
+            x: 0,
+            y: 0,
+            zoom: 1,
+            targetZoom: 1
+        };
 
-        let sonarUnlocked = true;
-        let sonarActive = false;
-        let sonarRadius = 0;
-        let sonarCooldown = 0;
-        const SONAR_MAX_RADIUS = 1000;
-        const SONAR_SPEED = 10;
-        const SONAR_COOLDOWN_TIME = 600; 
-        let wallAlphaState = [];
+        const types = {
+            planet: { mass: 100, radius: 8, color: '#4a90e2', trailColor: 'rgba(74, 144, 226, 0.3)' },
+            star: { mass: 10000, radius: 20, color: '#f5a623', trailColor: 'rgba(245, 166, 35, 0.3)' },
+            comet: { mass: 5, radius: 3, color: '#ffffff', trailColor: 'rgba(255, 255, 255, 0.3)' }
+        };
 
-        const GRAVITY = 0.15;
-        const SPLAT_COLOR = 'rgba(200, 0, 0, 0.7)';
-
-        class MazeGenerator {
-            constructor(cols, rows) {
-                this.cols = cols;
-                this.rows = rows;
-                this.grid = Array.from({ length: rows }, (_, r) => 
-                    Array.from({ length: cols }, (_, c) => ({ r, c, visited: false, walls: [true, true, true, true] }))
-                );
-            }
-
-            generate() {
-                const stack = [];
-                const start = this.grid[0][0];
-                start.visited = true;
-                stack.push(start);
-
-                while (stack.length > 0) {
-                    const current = stack.pop();
-                    const neighbors = this.getNeighbors(current);
-                    if (neighbors.length > 0) {
-                        stack.push(current);
-                        const next = neighbors[Math.floor(Math.random() * neighbors.length)];
-                        this.removeWalls(current, next);
-                        next.visited = true;
-                        stack.push(next);
-                    }
-                }
-                return this.toRects();
-            }
-
-            getNeighbors(cell) {
-                const { r, c } = cell;
-                return [
-                    r > 0 && this.grid[r-1][c], r < this.rows-1 && this.grid[r+1][c],
-                    c > 0 && this.grid[r][c-1], c < this.cols-1 && this.grid[r][c+1]
-                ].filter(n => n && !n.visited);
-            }
-
-            removeWalls(a, b) {
-                if (a.r > b.r) { a.walls[0] = false; b.walls[2] = false; }
-                else if (a.r < b.r) { a.walls[2] = false; b.walls[0] = false; }
-                else if (a.c > b.c) { a.walls[3] = false; b.walls[1] = false; }
-                else if (a.c < b.c) { a.walls[1] = false; b.walls[3] = false; }
-            }
-
-            toRects() {
-                const rects = [];
-                const w = canvas.width / this.cols;
-                const h = canvas.height / this.rows;
-                const t = 8 + (currentLevel * 1.2);
-                for (let r = 0; r < this.rows; r++) {
-                    for (let c = 0; c < this.cols; c++) {
-                        const cell = this.grid[r][c];
-                        const x = c * w, y = r * h;
-                        if (cell.walls[0]) rects.push({ x, y, w, h: t });
-                        if (cell.walls[1]) rects.push({ x: x + w - t, y, w: t, h });
-                        if (cell.walls[2]) rects.push({ x, y: y + h - t, w, h: t });
-                        if (cell.walls[3]) rects.push({ x, y, w: t, h });
-                    }
-                }
-                return rects;
-            }
-        }
-
+        // Resize handler
         function resize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            setupLevel();
+            camera.x = canvas.width / 2;
+            camera.y = canvas.height / 2;
         }
 
-        function setupLevel() {
-            levelIndicator.innerText = `Level ${currentLevel + 1}`;
-            const size = 5 + currentLevel; 
-            const gen = new MazeGenerator(Math.floor(size * 1.4), size);
-            const allWalls = gen.generate();
-
-            walls = allWalls.filter(w => {
-                const dS = Math.hypot((w.x + w.w/2) - startZone.x, (w.y + w.h/2) - startZone.y);
-                const dG = Math.hypot((w.x + w.w/2) - (canvas.width-50), (w.y + w.h/2) - (canvas.height-50));
-                return dS > 90 && dG > 90;
-            });
-
-            wallAlphaState = walls.map(() => 0);
-            goal.x = canvas.width - 50;
-            goal.y = canvas.height - 50;
-        }
-
-        function checkPathCollision(x1, y1, x2, y2) {
-            const distance = Math.hypot(x2 - x1, y2 - y1);
-            const steps = Math.ceil(distance / 3);
-            for (let i = 0; i <= steps; i++) {
-                const t = i / steps;
-                const cx = x1 + (x2 - x1) * t;
-                const cy = y1 + (y2 - y1) * t;
-                const hit = walls.some(w => cx > w.x && cx < w.x + w.w && cy > w.y && cy < w.y + w.h) 
-                          || cx < 2 || cx > canvas.width-2 || cy < 2 || cy > canvas.height-2;
-                if (hit) return { hit: true, x: cx, y: cy };
-            }
-            return { hit: false };
-        }
-
-        function spawnShrapnel(x, y) {
-            for (let i = 0; i < 3; i++) {
-                splats.push({
-                    x: x,
-                    y: y,
-                    vx: (Math.random() - 0.5) * 6,
-                    vy: (Math.random() - 0.7) * 8,
-                    r: 4 + Math.random() * 4,
-                    settled: false
-                });
-            }
-        }
-
-        function drawArrow(fX, fY, tX, tY) {
-            const len = 15;
-            const dx = tX - fX, dy = tY - fY;
-            const angle = Math.atan2(dy, dx);
-            ctx.save();
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(fX, fY);
-            ctx.lineTo(tX, tY);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(tX, tY);
-            ctx.lineTo(tX - len * Math.cos(angle - Math.PI/6), tY - len * Math.sin(angle - Math.PI/6));
-            ctx.lineTo(tX - len * Math.cos(angle + Math.PI/6), tY - len * Math.sin(angle + Math.PI/6));
-            ctx.closePath();
-            ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-            ctx.fill();
-            ctx.restore();
-        }
-
-        function update() {
-            if (sonarCooldown > 0) {
-                sonarCooldown--;
-                abilityBar.innerHTML = `<span class="sonar-charging">Sonar lädt: ${Math.floor((1 - sonarCooldown/600)*100)}%</span>`;
-                if (sonarCooldown === 0) abilityBar.innerHTML = '<span class="sonar-ready">Sonar bereit: [Rechtsklick]</span>';
-            }
-            if (sonarActive) {
-                sonarRadius += SONAR_SPEED;
-                if (sonarRadius > SONAR_MAX_RADIUS) sonarActive = false;
-            }
-            wallAlphaState = wallAlphaState.map(a => Math.max(0, a - 0.015));
-
-            splats.forEach(s => {
-                if (!s.settled) {
-                    s.x += s.vx;
-                    s.y += s.vy;
-                    s.vy += GRAVITY;
-                    s.vx *= 0.99;
-                    const hit = walls.some(w => s.x > w.x && s.x < w.x + w.w && s.y > w.y && s.y < w.y + w.h)
-                                || s.x < 2 || s.x > canvas.width-2 || s.y < 2 || s.y > canvas.height-2;
-                    if (hit || s.y > canvas.height - 5) {
-                        s.settled = true;
-                        s.vx = 0; s.vy = 0;
-                    }
-                }
-            });
-
-            if (isDead) {
-                if (Math.hypot(mousePos.x - startZone.x, mousePos.y - startZone.y) < startZone.radius) {
-                    if (levelCleared) { currentLevel++; splats = []; setupLevel(); levelCleared = false; }
-                    isDead = false; messageBox.classList.add('hidden'); gameStarted = true;
-                    lastProcessedPos = { ...mousePos };
-                }
-            } else if (gameStarted) {
-                const collision = checkPathCollision(lastProcessedPos.x, lastProcessedPos.y, mousePos.x, mousePos.y);
-                if (collision.hit) {
-                    spawnShrapnel(collision.x, collision.y);
-                    isDead = true; 
-                    messageBox.innerHTML = "<h2>Tot!</h2><p>Markierung gesetzt.</p><p>Gehe zurück zum Start-Kreis.</p>"; 
-                    messageBox.classList.remove('hidden');
-                } else if (Math.hypot(mousePos.x - goal.x, mousePos.y - goal.y) < goal.radius) {
-                    levelCleared = true; isDead = true; messageBox.innerHTML = "<h2>Level geschafft!</h2><p>Gehe zum Start für das nächste Level.</p>"; messageBox.classList.remove('hidden');
-                }
-                lastProcessedPos = { ...mousePos };
-            }
-        }
-
-        function draw() {
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            if (isDead || !gameStarted) {
-                ctx.beginPath(); ctx.arc(startZone.x, startZone.y, startZone.radius, 0, Math.PI*2);
-                ctx.strokeStyle = '#333'; ctx.setLineDash([5, 5]); ctx.stroke(); ctx.setLineDash([]);
-                if (isDead) drawArrow(mousePos.x, mousePos.y, startZone.x, startZone.y);
-            }
-
-            if (sonarActive) {
-                ctx.beginPath(); ctx.arc(mousePos.x, mousePos.y, sonarRadius, 0, Math.PI*2);
-                ctx.strokeStyle = `rgba(0, 150, 255, ${1 - sonarRadius/SONAR_MAX_RADIUS})`; ctx.stroke();
-                walls.forEach((w, i) => {
-                    const cx = Math.max(w.x, Math.min(mousePos.x, w.x + w.w)), cy = Math.max(w.y, Math.min(mousePos.y, w.y + w.h));
-                    if (Math.abs(Math.hypot(mousePos.x - cx, mousePos.y - cy) - sonarRadius) < 20) wallAlphaState[i] = 1.0;
-                });
-            }
-
-            walls.forEach((w, i) => {
-                const a = levelCleared ? 0.15 : wallAlphaState[i];
-                if (a > 0) {
-                    ctx.fillStyle = `rgba(255, 255, 255, ${a * 0.4})`; ctx.fillRect(w.x, w.y, w.w, w.h);
-                    ctx.strokeStyle = `rgba(0, 200, 255, ${a})`; ctx.strokeRect(w.x, w.y, w.w, w.h);
-                }
-            });
-
-            ctx.fillStyle = SPLAT_COLOR;
-            splats.forEach(s => {
-                ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
-            });
-
-            ctx.fillStyle = GOAL_COLOR; ctx.shadowBlur = 15; ctx.shadowColor = GOAL_COLOR;
-            ctx.beginPath(); ctx.arc(goal.x, goal.y, goal.radius, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
-
-            // Zeiger-Farbe: Hellgrau im Tutorial, Weiß im Spiel
-            ctx.fillStyle = !gameStarted ? '#888' : (isDead ? '#555' : '#fff');
-            ctx.beginPath(); ctx.arc(mousePos.x, mousePos.y, 5, 0, Math.PI*2); ctx.fill();
-
-            update();
-            requestAnimationFrame(draw);
-        }
-
-        window.addEventListener('mousemove', (e) => { mousePos.x = e.clientX; mousePos.y = e.clientY; });
-        window.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            if (!isDead && sonarCooldown === 0) { sonarActive = true; sonarRadius = 0; sonarCooldown = SONAR_COOLDOWN_TIME; }
-        });
         window.addEventListener('resize', resize);
-        window.onload = () => { resize(); isDead = true; draw(); };
+        resize();
+
+        // UI Helpers
+        function setObjectType(type) {
+            currentType = type;
+            document.querySelectorAll('.object-type-btn').forEach(btn => btn.classList.remove('btn-active'));
+            document.getElementById(`btn-${type}`).classList.add('btn-active');
+        }
+
+        function clearSystem() {
+            objects = [];
+        }
+
+        function resetView() {
+            camera.zoom = 1;
+            camera.targetZoom = 1;
+            camera.x = canvas.width / 2;
+            camera.y = canvas.height / 2;
+        }
+
+        // Math Helpers
+        function screenToWorld(x, y) {
+            return {
+                x: (x - camera.x) / camera.zoom,
+                y: (y - camera.y) / camera.zoom
+            };
+        }
+
+        class CelestialBody {
+            constructor(x, y, vx, vy, type) {
+                const config = types[type];
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.mass = config.mass;
+                this.radius = config.radius;
+                this.color = config.color;
+                this.trailColor = config.trailColor;
+                this.type = type;
+                this.trail = [];
+                this.maxTrail = 200;
+                this.destroyed = false;
+            }
+
+            update() {
+                this.x += this.vx * timeStep;
+                this.y += this.vy * timeStep;
+
+                if (SHOW_TRAILS.checked) {
+                    this.trail.push({ x: this.x, y: this.y });
+                    if (this.trail.length > this.maxTrail) this.trail.shift();
+                } else {
+                    this.trail = [];
+                }
+            }
+
+            draw() {
+                // Draw Trail
+                if (SHOW_TRAILS.checked && this.trail.length > 1) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = this.trailColor;
+                    ctx.lineWidth = 1 / camera.zoom;
+                    ctx.moveTo(this.trail[0].x, this.trail[0].y);
+                    for (let p of this.trail) {
+                        ctx.lineTo(p.x, p.y);
+                    }
+                    ctx.stroke();
+                }
+
+                // Draw Glow
+                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius * 2);
+                gradient.addColorStop(0, this.color);
+                gradient.addColorStop(1, 'transparent');
+                
+                ctx.fillStyle = gradient;
+                ctx.globalAlpha = 0.4;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius * 2.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+
+                // Draw Core
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Details for specific types
+                if (this.type === 'star') {
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = this.color;
+                } else {
+                    ctx.shadowBlur = 0;
+                }
+            }
+        }
+
+        // Physics Logic
+        function applyGravity() {
+            for (let i = 0; i < objects.length; i++) {
+                for (let j = i + 1; j < objects.length; j++) {
+                    const b1 = objects[i];
+                    const b2 = objects[j];
+
+                    const dx = b2.x - b1.x;
+                    const dy = b2.y - b1.y;
+                    const distSq = dx * dx + dy * dy;
+                    const dist = Math.sqrt(distSq);
+
+                    // Collision check
+                    if (dist < (b1.radius + b2.radius)) {
+                        handleCollision(b1, b2);
+                        continue;
+                    }
+
+                    const force = (G * b1.mass * b2.mass) / distSq;
+                    const ax = (force * dx / dist) / b1.mass;
+                    const ay = (force * dy / dist) / b1.mass;
+
+                    b1.vx += ax * timeStep;
+                    b1.vy += ay * timeStep;
+
+                    b2.vx -= (ax * b1.mass / b2.mass) * timeStep;
+                    b2.vy -= (ay * b1.mass / b2.mass) * timeStep;
+                }
+            }
+            // Cleanup destroyed objects
+            objects = objects.filter(o => !o.destroyed);
+        }
+
+        function handleCollision(b1, b2) {
+            // Merging logic: smaller gets absorbed by larger
+            if (b1.mass >= b2.mass) {
+                absorb(b1, b2);
+            } else {
+                absorb(b2, b1);
+            }
+        }
+
+        function absorb(winner, loser) {
+            // Momentum conservation: m1v1 + m2v2 = (m1+m2)v3
+            const totalMass = winner.mass + loser.mass;
+            winner.vx = (winner.vx * winner.mass + loser.vx * loser.mass) / totalMass;
+            winner.vy = (winner.vy * winner.mass + loser.vy * loser.mass) / totalMass;
+            
+            winner.mass = totalMass;
+            // Radius grows sub-linearly (volume-based growth roughly)
+            winner.radius = Math.max(winner.radius, Math.pow(totalMass, 1/3) * 2);
+            
+            loser.destroyed = true;
+        }
+
+        // Drawing Trajectory Prediction
+        function drawPrediction() {
+            if (!isDragging) return;
+
+            const worldStart = screenToWorld(startPos.x, startPos.y);
+            const worldEnd = screenToWorld(currentMousePos.x, currentMousePos.y);
+            
+            // Launch vector
+            const vx = (worldStart.x - worldEnd.x) * 0.05;
+            const vy = (worldStart.y - worldEnd.y) * 0.05;
+
+            // Temp object for simulation
+            let tempObj = {
+                x: worldStart.x,
+                y: worldStart.y,
+                vx: vx,
+                vy: vy,
+                mass: types[currentType].mass,
+                radius: types[currentType].radius
+            };
+
+            ctx.beginPath();
+            ctx.setLineDash([5, 5]);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.moveTo(tempObj.x, tempObj.y);
+
+            // Simulate forward for 150 steps
+            for (let i = 0; i < 150; i++) {
+                // Simple Euler for prediction
+                for (let other of objects) {
+                    const dx = other.x - tempObj.x;
+                    const dy = other.y - tempObj.y;
+                    const d2 = dx * dx + dy * dy;
+                    if (d2 < 100) continue; 
+                    const f = (G * tempObj.mass * other.mass) / d2;
+                    tempObj.vx += (f * dx / Math.sqrt(d2) / tempObj.mass) * timeStep;
+                    tempObj.vy += (f * dy / Math.sqrt(d2) / tempObj.mass) * timeStep;
+                }
+                tempObj.x += tempObj.vx * timeStep;
+                tempObj.y += tempObj.vy * timeStep;
+
+                if (i % 5 === 0) ctx.lineTo(tempObj.x, tempObj.y);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw current vector line
+            ctx.beginPath();
+            ctx.strokeStyle = types[currentType].color;
+            ctx.lineWidth = 2 / camera.zoom;
+            ctx.moveTo(worldStart.x, worldStart.y);
+            ctx.lineTo(worldEnd.x, worldEnd.y);
+            ctx.stroke();
+        }
+
+        function drawBackground() {
+            // Draw Stars
+            ctx.fillStyle = "#fff";
+            // We use a fixed seed-like pattern for background stars based on coordinates
+            // (In a real game these would be static sprites)
+        }
+
+        function drawGrid() {
+            if (!SHOW_GRID.checked) return;
+
+            const gridSize = 100;
+            const scaledGridSize = gridSize;
+            
+            ctx.beginPath();
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+            ctx.lineWidth = 1 / camera.zoom;
+
+            // Simple infinite grid calculation
+            const left = ( -camera.x / camera.zoom );
+            const top = ( -camera.y / camera.zoom );
+            const right = ( (canvas.width - camera.x) / camera.zoom );
+            const bottom = ( (canvas.height - camera.y) / camera.zoom );
+
+            for (let x = Math.floor(left / gridSize) * gridSize; x < right; x += gridSize) {
+                ctx.moveTo(x, top);
+                ctx.lineTo(x, bottom);
+            }
+            for (let y = Math.floor(top / gridSize) * gridSize; y < bottom; y += gridSize) {
+                ctx.moveTo(left, y);
+                ctx.lineTo(right, y);
+            }
+            ctx.stroke();
+
+            // Center axis
+            ctx.beginPath();
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+            ctx.moveTo(0, top); ctx.lineTo(0, bottom);
+            ctx.moveTo(left, 0); ctx.lineTo(right, 0);
+            ctx.stroke();
+        }
+
+        // Input Events
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button === 0) {
+                isDragging = true;
+                startPos = { x: e.clientX, y: e.clientY };
+                currentMousePos = { x: e.clientX, y: e.clientY };
+            } else if (e.button === 2) {
+                isPanning = true;
+                startPos = { x: e.clientX, y: e.clientY };
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                currentMousePos = { x: e.clientX, y: e.clientY };
+            }
+            if (isPanning) {
+                const dx = e.clientX - startPos.x;
+                const dy = e.clientY - startPos.y;
+                camera.x += dx;
+                camera.y += dy;
+                startPos = { x: e.clientX, y: e.clientY };
+            }
+        });
+
+        window.addEventListener('mouseup', (e) => {
+            if (e.button === 0 && isDragging) {
+                const worldStart = screenToWorld(startPos.x, startPos.y);
+                const worldEnd = screenToWorld(e.clientX, e.clientY);
+                
+                // Velocity is proportional to drag length
+                const vx = (worldStart.x - worldEnd.x) * 0.05;
+                const vy = (worldStart.y - worldEnd.y) * 0.05;
+
+                objects.push(new CelestialBody(worldStart.x, worldStart.y, vx, vy, currentType));
+                isDragging = false;
+            }
+            if (e.button === 2) {
+                isPanning = false;
+            }
+        });
+
+        canvas.addEventListener('wheel', (e) => {
+            const zoomSpeed = 0.001;
+            const delta = -e.deltaY;
+            const factor = Math.pow(1.1, delta / 100);
+            
+            // Zoom at mouse position
+            const mouseWorldBefore = screenToWorld(e.clientX, e.clientY);
+            camera.zoom *= factor;
+            camera.zoom = Math.max(0.01, Math.min(10, camera.zoom));
+            const mouseWorldAfter = screenToWorld(e.clientX, e.clientY);
+            
+            camera.x += (mouseWorldAfter.x - mouseWorldBefore.x) * camera.zoom;
+            camera.y += (mouseWorldAfter.y - mouseWorldBefore.y) * camera.zoom;
+            
+            e.preventDefault();
+        }, { passive: false });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'c') clearSystem();
+        });
+
+        // Prevent Context Menu
+        canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+        // Main Loop
+        function loop() {
+            // Update constants from UI
+            G = parseFloat(G_INPUT.value);
+            timeStep = parseFloat(SPEED_INPUT.value);
+            G_VAL.innerText = G.toFixed(1);
+            SPEED_VAL.innerText = timeStep.toFixed(1);
+
+            // Physics
+            applyGravity();
+            for (let obj of objects) {
+                obj.update();
+            }
+
+            // Stats
+            STAT_COUNT.innerText = objects.length;
+            const totalMass = objects.reduce((sum, o) => sum + o.mass, 0);
+            STAT_MASS.innerText = Math.round(totalMass).toLocaleString();
+
+            // Render
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // World space transformations
+            ctx.translate(camera.x, camera.y);
+            ctx.scale(camera.zoom, camera.zoom);
+
+            drawGrid();
+
+            for (let obj of objects) {
+                obj.draw();
+            }
+
+            drawPrediction();
+
+            requestAnimationFrame(loop);
+        }
+
+        // Start
+        window.onload = loop;
+
     </script>
 </body>
 </html>
