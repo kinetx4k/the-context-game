@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galaxy Engine Pro - Infinite Universe</title>
+    <title>Galaxy Engine Pro - Pixel Universe</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -86,7 +86,6 @@
 
     <div class="nebula-glow"></div>
 
-    <!-- Menü oben links -->
     <div class="absolute top-5 left-5 dropdown z-[200]">
         <button class="ui-panel px-6 py-3 font-bold flex items-center gap-2 hover:bg-gray-800 transition-colors">
             <span>☰ Universe Control</span>
@@ -115,7 +114,7 @@
                 </div>
                 <div class="flex items-center justify-between">
                     <label class="text-xs">Universe Limit</label>
-                    <span class="text-[10px] text-gray-400">10000 Units</span>
+                    <span class="text-[10px] text-gray-400">20000 Units</span>
                 </div>
             </div>
 
@@ -126,7 +125,6 @@
         </div>
     </div>
 
-    <!-- Hotbar unten -->
     <div class="hotbar ui-panel">
         <button onclick="setObjectType('planet')" id="hot-planet" class="hotbar-btn active px-4 py-2 rounded-lg flex flex-col items-center gap-1">
             <div class="w-3 h-3 rounded-full bg-blue-400"></div>
@@ -150,7 +148,6 @@
         </button>
     </div>
 
-    <!-- Editor rechts -->
     <div id="object-editor" class="ui-panel space-y-4">
         <div class="flex justify-between items-center border-b border-gray-700 pb-2">
             <h2 class="font-bold text-blue-400">Object Settings</h2>
@@ -171,13 +168,12 @@
             </div>
             <div class="flex gap-2">
                 <button onclick="focusOnObject()" class="flex-1 p-2 rounded bg-blue-900/40 text-[10px] border border-blue-700/50 uppercase font-bold">Follow</button>
-                <button onclick="explodeSelected()" class="flex-1 p-2 rounded bg-orange-900/40 text-[10px] border border-orange-700/50 uppercase font-bold">Explode</button>
+                <button onclick="pixelateSelected()" class="flex-1 p-2 rounded bg-purple-900/40 text-[10px] border border-purple-700/50 uppercase font-bold">Pixelate</button>
             </div>
         </div>
         <button onclick="deleteSelected()" class="w-full p-2 mt-2 rounded bg-red-900/40 text-[10px] border border-red-700/50 uppercase font-bold hover:bg-red-800">Destroy</button>
     </div>
 
-    <!-- Stats unten links -->
     <div id="stats" class="ui-panel flex gap-8">
         <div class="flex flex-col">
             <span class="text-[0.6rem] text-gray-500 uppercase font-bold tracking-widest">Active Bodies</span>
@@ -192,9 +188,6 @@
     <canvas id="simCanvas"></canvas>
 
     <script>
-        /**
-         * GLOBALE KONFIGURATION
-         */
         const canvas = document.getElementById('simCanvas');
         const ctx = canvas.getContext('2d');
         const STAT_COUNT = document.getElementById('stat-count');
@@ -218,7 +211,7 @@
         let startPos = { x: 0, y: 0 }, currentMousePos = { x: 0, y: 0 };
         let camera = { x: 0, y: 0, zoom: 1 };
         
-        const UNIVERSE_LIMIT = 10000; // Größere Grenze des Universums
+        const UNIVERSE_LIMIT = 20000;
 
         const types = {
             planet: { mass: 100, radius: 12, color: '#4a90e2', trailColor: 'rgba(74, 144, 226, 0.1)' },
@@ -254,9 +247,6 @@
         function resetView() { camera.zoom = 1; camera.x = canvas.width / 2; camera.y = canvas.height / 2; trackedObject = null; }
         function screenToWorld(x, y) { return { x: (x - camera.x) / camera.zoom, y: (y - camera.y) / camera.zoom }; }
 
-        /**
-         * SUPERNOVA UND NEBEL EFFEKTE (WIE AUF DEN BILDERN)
-         */
         class NebulaCloud {
             constructor(x, y, baseColor) {
                 this.x = x; this.y = y;
@@ -264,7 +254,6 @@
                 this.maxRadius = 300 + Math.random() * 600;
                 this.opacity = 0.8;
                 this.expansion = 0.4 + Math.random() * 0.6;
-                // Farben wie beim Crab Nebula (Cyan, Orange, Rot Mischung)
                 this.colors = ['#00ffff', '#ff6600', '#ff0066', '#4400ff'];
                 this.color = this.colors[Math.floor(Math.random() * this.colors.length)];
                 this.rotation = Math.random() * Math.PI * 2;
@@ -287,7 +276,6 @@
                 grad.addColorStop(0.5, '#ffffff22');
                 grad.addColorStop(1, 'transparent');
                 ctx.fillStyle = grad;
-                // Unregelmäßige Wolkenform
                 ctx.beginPath();
                 for(let i=0; i<8; i++) {
                     const a = (i/8) * Math.PI * 2;
@@ -320,7 +308,6 @@
                 this.x += this.vx * timeScale;
                 this.y += this.vy * timeScale;
                 
-                // Universum Limit Check (Abprallen)
                 const dist = Math.hypot(this.x, this.y);
                 if (dist > UNIVERSE_LIMIT) {
                     const nx = this.x / dist;
@@ -328,7 +315,6 @@
                     const dot = this.vx * nx + this.vy * ny;
                     this.vx -= 2 * dot * nx;
                     this.vy -= 2 * dot * ny;
-                    // Zurück in die Grenze schieben
                     this.x = nx * (UNIVERSE_LIMIT - 1);
                     this.y = ny * (UNIVERSE_LIMIT - 1);
                 }
@@ -353,7 +339,6 @@
                 
                 if (this.type === 'blackhole') { this.drawBlackHole(); return; }
 
-                // Stärkeres Glühen für Meteoriten/Comets
                 const gSize = (this.type === 'star' || this.type === 'giant') ? 5 : (this.type === 'comet' ? 4 : 1.6);
                 const glow = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius * gSize);
                 glow.addColorStop(0, this.color);
@@ -370,7 +355,12 @@
                 ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * gSize, 0, Math.PI * 2); ctx.fill();
                 ctx.globalAlpha = 1.0;
 
-                ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = this.color; 
+                if (this.type === 'dust') {
+                    ctx.fillRect(this.x-this.radius, this.y-this.radius, this.radius*2, this.radius*2);
+                } else {
+                    ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill();
+                }
                 ctx.restore();
 
                 if (this.features.length > 0) {
@@ -395,19 +385,15 @@
         }
 
         function triggerSupernova(x, y, color) {
-            // Mehrere Wolken für den Crab-Nebula Look
             for(let i=0; i<15; i++) {
                 nebulae.push(new NebulaCloud(x + (Math.random()-0.5)*100, y + (Math.random()-0.5)*100, color));
             }
-            for(let i=0; i<80; i++) {
-                const ang = Math.random()*Math.PI*2, spd = Math.random()*25 + 5;
+            for(let i=0; i<1000; i++) {
+                const ang = Math.random()*Math.PI*2, spd = Math.random()*25 + 2;
                 objects.push(new CelestialBody(x, y, Math.cos(ang)*spd, Math.sin(ang)*spd, 'dust', { color: color }));
             }
         }
 
-        /**
-         * NEUE PRESETS
-         */
         function spawnSolarSystem() {
             clearSystem();
             const sun = new CelestialBody(0, 0, 0, 0, 'star', { mass: 120000, radius: 85, color: '#ffcc33' });
@@ -422,8 +408,7 @@
                 const a = Math.random()*Math.PI*2, s = Math.sqrt((G*sun.mass)/p.d);
                 objects.push(new CelestialBody(Math.cos(a)*p.d, Math.sin(a)*p.d, Math.sin(a)*s, -Math.cos(a)*s, 'planet', { mass: p.mass, radius: p.r, color: p.c }));
             });
-            // Asteroiden Gürtel
-            for(let i=0; i<300; i++) {
+            for(let i=0; i<500; i++) {
                 const d = 1300 + Math.random()*200, a = Math.random()*Math.PI*2, s = Math.sqrt((G*sun.mass)/d);
                 objects.push(new CelestialBody(Math.cos(a)*d, Math.sin(a)*d, Math.sin(a)*s, -Math.cos(a)*s, 'dust', { color: '#777' }));
             }
@@ -432,11 +417,9 @@
 
         function spawnTripleSystem() {
             clearSystem();
-            // Zentrale Doppelsterne
             const d = 150, m = 50000, s = Math.sqrt((G*m)/(d*2));
             objects.push(new CelestialBody(-d, 0, 0, s, 'star', { mass: m, color: '#ff3366' }));
             objects.push(new CelestialBody(d, 0, 0, -s, 'star', { mass: m, color: '#33ffcc' }));
-            // Dritter ferner Stern
             const d3 = 1000, m3 = 20000, s3 = Math.sqrt((G*(m*2))/d3);
             objects.push(new CelestialBody(0, d3, s3, 0, 'star', { mass: m3, color: '#ffff33' }));
             camera.zoom = 0.4;
@@ -446,7 +429,6 @@
             clearSystem();
             const bh = new CelestialBody(0,0,0,0, 'blackhole', { mass: 800000 });
             objects.push(bh);
-            // Sterne wie Elektronenbahnen
             for(let i=0; i<6; i++) {
                 const dist = 400 + i * 150;
                 const angle = Math.random() * Math.PI * 2;
@@ -464,21 +446,17 @@
             clearSystem();
             const core = new CelestialBody(0,0,0,0, 'blackhole', { mass: 1000000 });
             objects.push(core);
-            for(let i=0; i<600; i++) {
-                const angle = i * 0.08, dist = 400 + i * 8 + Math.random()*150;
+            for(let i=0; i<2000; i++) {
+                const angle = i * 0.05, dist = 400 + i * 4 + Math.random()*200;
                 const s = Math.sqrt((G*core.mass)/dist);
                 objects.push(new CelestialBody(Math.cos(angle)*dist, Math.sin(angle)*dist, Math.sin(angle)*s, -Math.cos(angle)*s, 'dust', { color: `hsl(${i%360}, 80%, 70%)` }));
             }
             camera.zoom = 0.08;
         }
 
-        /**
-         * PHYSIK ENGINE
-         */
         function applyPhysics() {
             if (isPaused) return;
             
-            // Objekte berechnen
             for(let i=0; i<objects.length; i++) {
                 const b1 = objects[i];
                 for(let j=i+1; j<objects.length; j++) {
@@ -497,30 +475,26 @@
                     b2.vx -= (ax*b1.mass/b2.mass) * timeScale; 
                     b2.vy -= (ay*b1.mass/b2.mass) * timeScale;
 
-                    if ((b1.type === 'blackhole' || b2.type === 'blackhole') && d < 600) {
+                    if ((b1.type === 'blackhole' || b2.type === 'blackhole') && d < 1200) {
                         const bh = b1.type === 'blackhole' ? b1 : b2, target = b1.type === 'blackhole' ? b2 : b1;
-                        if (target.type !== 'dust') {
-                            const dr = 3.0 * timeScale;
-                            if (target.mass > dr) { 
-                                target.mass -= dr; bh.mass += dr; 
-                                target.radius = Math.max(2, target.radius - 0.01); 
-                            } else target.destroyed = true;
-                        }
+                        const dr = (target.type === 'dust' ? 0.05 : 3.0) * timeScale;
+                        if (target.mass > dr) { 
+                            target.mass -= dr; bh.mass += dr; 
+                            if (target.type !== 'dust') target.radius = Math.max(2, target.radius - 0.01); 
+                        } else target.destroyed = true;
                     }
                 }
             }
 
-            // Nebel-Einsaugen berechnen
             nebulae.forEach(n => {
                 objects.forEach(bh => {
                     if (bh.type === 'blackhole') {
                         const dx = bh.x - n.x, dy = bh.y - n.y;
                         const d2 = dx*dx + dy*dy, d = Math.sqrt(d2);
-                        if (d < 1000) { // Saug-Reichweite
-                            const force = 3.0 * (1 - d/1000);
+                        if (d < 1500) { 
+                            const force = 5.0 * (1 - d/1500);
                             n.x += (dx/d) * force;
                             n.y += (dy/d) * force;
-                            // Wenn im schwarzen Loch, dann weg
                             if (d < bh.radius) n.opacity = 0;
                         }
                     }
@@ -546,7 +520,12 @@
             const winner = b1.mass >= b2.mass ? b1 : b2, loser = b1.mass >= b2.mass ? b2 : b1;
             if (winner.type === 'blackhole') { winner.mass += loser.mass; loser.destroyed = true; return; }
             
-            // Supernova bei schweren Sternen / Giants
+            const pixelCount = Math.min(2000, Math.floor(loser.mass * 2));
+            for(let i=0; i<pixelCount; i++) {
+                const ang = Math.random()*Math.PI*2, spd = Math.random()*10 + 1;
+                objects.push(new CelestialBody(loser.x, loser.y, winner.vx + Math.cos(ang)*spd, winner.vy + Math.sin(ang)*spd, 'dust', { color: loser.color }));
+            }
+
             if ((winner.type === 'star' || winner.type === 'giant') && loser.mass > 200) {
                 triggerSupernova(loser.x, loser.y, loser.color);
             }
@@ -561,49 +540,60 @@
             if(trackedObject === loser) trackedObject = winner;
         }
 
-        /**
-         * RENDERING LOOP
-         */
+        function pixelateSelected() {
+            if(!selectedObject || selectedObject.type === 'blackhole') return;
+            const obj = selectedObject;
+            const pixelCount = Math.min(3000, Math.floor(obj.mass * 5));
+            for(let i=0; i<pixelCount; i++) {
+                const ang = Math.random()*Math.PI*2, spd = Math.random()*5;
+                objects.push(new CelestialBody(obj.x, obj.y, obj.vx + Math.cos(ang)*spd, obj.vy + Math.sin(ang)*spd, 'dust', { color: obj.color }));
+            }
+            obj.destroyed = true;
+            deselectObject();
+        }
+
+        function drawPrediction() {
+            if (!isDragging) return;
+            const wS = screenToWorld(startPos.x, startPos.y), wE = screenToWorld(currentMousePos.x, currentMousePos.y);
+            const vx = (wS.x - wE.x) * 0.06, vy = (wS.y - wE.y) * 0.06;
+            let temp = { x: wS.x, y: wS.y, vx: vx, vy: vy, mass: types[currentType].mass };
+            ctx.beginPath(); ctx.setLineDash([5, 5]); ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'; ctx.moveTo(temp.x, temp.y);
+            for (let i = 0; i < 200; i++) {
+                for (let other of objects) {
+                    if (other.type === 'dust') continue;
+                    const dx = other.x - temp.x, dy = other.y - temp.y, distSq = dx * dx + dy * dy;
+                    if (distSq < 500) continue;
+                    const dist = Math.sqrt(distSq), force = (G * temp.mass * other.mass) / distSq;
+                    temp.vx += (force * dx / dist / temp.mass) * timeScale; temp.vy += (force * dy / dist / temp.mass) * timeScale;
+                }
+                temp.x += temp.vx * timeScale; temp.y += temp.vy * timeScale;
+                if (i % 5 === 0) ctx.lineTo(temp.x, temp.y);
+            }
+            ctx.stroke(); ctx.setLineDash([]);
+            ctx.beginPath(); ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.moveTo(wS.x, wS.y); ctx.lineTo(wE.x, wE.y); ctx.stroke();
+        }
+
         function mainLoop() {
             applyPhysics();
             objects.forEach(o => o.update());
-
             if (trackedObject) {
                 camera.x = canvas.width/2 - trackedObject.x * camera.zoom;
                 camera.y = canvas.height/2 - trackedObject.y * camera.zoom;
             }
-
-            STAT_COUNT.innerText = objects.filter(o => o.type !== 'dust').length;
+            STAT_COUNT.innerText = objects.length;
             STAT_MASS.innerText = Math.round(objects.reduce((s,o) => s+o.mass, 0)).toLocaleString();
-
             ctx.setTransform(1,0,0,1,0,0);
             ctx.clearRect(0,0,canvas.width, canvas.height);
-            
             ctx.translate(camera.x, camera.y);
             ctx.scale(camera.zoom, camera.zoom);
-
-            // Universum Grenze Zeichnen
-            ctx.beginPath();
-            ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-            ctx.lineWidth = 10/camera.zoom;
-            ctx.arc(0, 0, UNIVERSE_LIMIT, 0, Math.PI*2);
-            ctx.stroke();
-
+            ctx.beginPath(); ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 10/camera.zoom;
+            ctx.arc(0, 0, UNIVERSE_LIMIT, 0, Math.PI*2); ctx.stroke();
             nebulae.forEach(n => n.draw());
             objects.forEach(o => o.draw());
-
-            if (isDragging) {
-                const wS = screenToWorld(startPos.x, startPos.y), wE = screenToWorld(currentMousePos.x, currentMousePos.y);
-                ctx.beginPath(); ctx.setLineDash([6,6]); ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.moveTo(wS.x, wS.y);
-                ctx.lineTo(wE.x, wE.y); ctx.stroke(); ctx.setLineDash([]);
-            }
-
+            if (isDragging) drawPrediction();
             requestAnimationFrame(mainLoop);
         }
 
-        /**
-         * INPUTS
-         */
         canvas.addEventListener('mousedown', (e) => {
             const w = screenToWorld(e.clientX, e.clientY);
             if (e.button === 0) {
@@ -637,7 +627,6 @@
         function deselectObject() { selectedObject = null; EDITOR_PANEL.style.display = 'none'; }
         function deleteSelected() { if(selectedObject) selectedObject.destroyed = true; deselectObject(); }
         function focusOnObject() { if(selectedObject) trackedObject = selectedObject; }
-        function explodeSelected() { if(selectedObject) { triggerSupernova(selectedObject.x, selectedObject.y, selectedObject.color); selectedObject.destroyed = true; deselectObject(); } }
 
         [EDIT_MASS, EDIT_RADIUS, EDIT_COLOR].forEach(el => el.addEventListener('input', () => { if(selectedObject) { selectedObject.mass = +EDIT_MASS.value; selectedObject.radius = +EDIT_RADIUS.value; selectedObject.color = EDIT_COLOR.value; } }));
 
