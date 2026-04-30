@@ -46,7 +46,7 @@
             100% { transform: scale(1) rotate(0deg); opacity: 1; }
         }
         .brawl-reveal {
-            animation: brawl-spin 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            animation: brawl-spin 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
         /* Glow Effekte für die Tiere */
@@ -1550,19 +1550,19 @@
                 const display = this.dom.hatchDisplay;
                 let percent = ((batch.maxTime - batch.timeLeft) / batch.maxTime) * 100;
                 
-                // Wir zeigen maximal 20 wackelnde Eier, damit es den Bildschirm nicht sprengt
-                let renderCount = Math.min(batch.amount, 20); 
+                // Wir zeigen maximal 30 wackelnde Eier, damit es den Bildschirm nicht sprengt
+                let renderCount = Math.min(batch.amount, 30); 
                 let eggsHtml = '';
                 for(let i=0; i<renderCount; i++) {
-                    eggsHtml += `<div class="text-5xl md:text-6xl egg-shake mx-1 my-1">🥚</div>`;
+                    eggsHtml += `<div class="text-5xl md:text-6xl egg-shake mx-1 my-1 flex flex-col items-center justify-center w-24 h-32">🥚</div>`;
                 }
-                if(batch.amount > 20) {
-                    eggsHtml += `<div class="text-2xl font-bold text-slate-400 self-center mx-2">+${batch.amount - 20}</div>`;
+                if(batch.amount > 30) {
+                    eggsHtml += `<div class="text-2xl font-bold text-slate-400 self-center mx-2">+${batch.amount - 30}</div>`;
                 }
 
                 display.innerHTML = `
                     <div class="text-slate-400 mb-4 font-bold text-xl">Warming up ${batch.amount}x ${batch.egg.name}...</div>
-                    <div class="flex flex-wrap justify-center mb-6 max-w-full">
+                    <div class="flex flex-wrap justify-center mb-6 max-h-[50vh] overflow-y-auto custom-scrollbar">
                         ${eggsHtml}
                     </div>
                     <div class="w-full max-w-md bg-slate-800 h-4 mt-2 rounded-full border border-slate-600 overflow-hidden relative">
@@ -1587,21 +1587,26 @@
                 if (maxRarity >= 3) shakeClass = 'epic-shake-anim';
                 if (maxRarity >= 6) shakeClass = 'secret-shake-anim';
 
-                let renderCount = Math.min(pulledPets.length, 20);
-                let eggsHtml = '';
-                for(let i=0; i<renderCount; i++) {
-                    eggsHtml += `<div class="text-5xl md:text-6xl ${shakeClass} mx-1 my-1">🥚</div>`;
-                }
+                let renderCount = Math.min(pulledPets.length, 30);
+                
+                // Wir bauen zuerst das Grid aus wackelnden Eiern auf, die alle nebeneinander liegen
+                let eggsHtml = pulledPets.slice(0, 30).map((pet, index) => {
+                    return `<div id="hatch-item-${index}" class="flex flex-col items-center justify-center w-24 h-32 mx-1 my-1"><div class="text-5xl md:text-6xl ${shakeClass}">🥚</div></div>`;
+                }).join('');
 
                 display.innerHTML = `
-                    <div class="text-emerald-400 mb-4 animate-pulse font-bold text-2xl">HATCHING ${pulledPets.length} PETS!</div>
-                    <div class="flex flex-wrap justify-center mb-4">
+                    <div id="hatch-title" class="text-emerald-400 mb-4 animate-pulse font-bold text-2xl text-center w-full">HATCHING ${pulledPets.length} PETS!</div>
+                    <div id="hatch-grid" class="flex flex-row justify-center items-end flex-wrap w-full gap-2 max-h-[50vh] overflow-y-auto custom-scrollbar p-2 rounded-xl bg-slate-800/50">
                         ${eggsHtml}
                     </div>
                 `;
 
-                setTimeout(() => {
-                    let petsHtml = pulledPets.slice(0, 30).map((resultPet, index) => {
+                // Jetzt öffnen wir die Eier eins nach dem anderen mit exakt 100ms Abstand
+                pulledPets.slice(0, 30).forEach((resultPet, index) => {
+                    setTimeout(() => {
+                        const itemEl = document.getElementById(`hatch-item-${index}`);
+                        if (!itemEl) return;
+
                         let rarityColor = 'text-emerald-400';
                         let glowClass = 'common-glow';
                         
@@ -1613,27 +1618,32 @@
                         if (resultPet.rarity === 'Divine') { rarityColor = 'text-sky-400 font-bold'; glowClass = 'divine-glow'; }
                         if (resultPet.rarity === 'Secret') { rarityColor = 'text-red-500 font-black'; glowClass = 'secret-glow'; }
 
-                        let delay = Math.min(index * 0.1, 1.5); // Verzögerung kappen damit es nicht ewig dauert
-
-                        return `
-                            <div class="flex flex-col items-center mx-2 brawl-reveal my-2" style="animation-delay: ${delay}s; opacity: 0; animation-fill-mode: forwards;">
+                        // Ersetze das Ei an Ort und Stelle durch das Tier
+                        itemEl.innerHTML = `
+                            <div class="flex flex-col items-center brawl-reveal" style="opacity: 1;">
                                 <div class="text-4xl md:text-5xl ${glowClass} rounded-full p-4 mb-2 border border-slate-700 bg-slate-800 shadow-xl">${resultPet.emoji}</div>
-                                <div class="text-sm md:text-md font-bold ${rarityColor} shadow-black drop-shadow-md">${resultPet.name}</div>
+                                <div class="text-xs md:text-sm font-bold ${rarityColor} shadow-black drop-shadow-md text-center leading-tight whitespace-nowrap">${resultPet.name}</div>
                                 <div class="text-[10px] text-slate-400 uppercase tracking-widest font-bold mt-1">${resultPet.rarity}</div>
                             </div>
                         `;
-                    }).join('');
+                    }, 500 + (index * 100)); // 0.5s warten vor dem Start, danach alle 100ms
+                });
 
-                    if(pulledPets.length > 30) {
-                        petsHtml += `<div class="text-xl text-slate-400 self-center font-bold ml-4">+${pulledPets.length - 30} hidden</div>`;
+                // Berechne die gesamte Wartezeit bis alle Tiere fertig animiert sind
+                const totalAnimTime = 500 + (renderCount * 100) + 1500;
+                
+                setTimeout(() => {
+                    // Update den Text am Ende
+                    const titleEl = document.getElementById('hatch-title');
+                    if (titleEl) {
+                        titleEl.className = "text-white mb-4 text-2xl font-bold fade-in w-full text-center";
+                        titleEl.innerText = `You hatched ${pulledPets.length} pets!`;
                     }
 
-                    display.innerHTML = `
-                        <div class="text-white mb-4 text-2xl font-bold fade-in w-full text-center">You hatched ${pulledPets.length} pets!</div>
-                        <div class="flex flex-row justify-center items-end flex-wrap w-full gap-2 max-h-[50vh] overflow-y-auto custom-scrollbar p-2 rounded-xl bg-slate-800/50">
-                            ${petsHtml}
-                        </div>
-                    `;
+                    if(pulledPets.length > 30) {
+                        const grid = document.getElementById('hatch-grid');
+                        if (grid) grid.innerHTML += `<div class="text-xl text-slate-400 self-center font-bold ml-4 w-full text-center mt-4">+${pulledPets.length - 30} hidden</div>`;
+                    }
 
                     pulledPets.forEach(p => State.addPet(p));
                     
@@ -1641,9 +1651,9 @@
                         State.isHatchAnimating = false;
                         State.hatchQueue.shift(); 
                         GameEvents.emit('state_queue_updated', State.hatchQueue);
-                    }, 2000 + (Math.min(pulledPets.length, 15) * 100)); 
+                    }, 2000); 
 
-                }, 1000); 
+                }, totalAnimTime); 
             }
         };
 
