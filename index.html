@@ -60,6 +60,17 @@
             width: 280px;
             padding: 20px;
             z-index: 100;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        #object-editor {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 280px;
+            padding: 20px;
+            z-index: 100;
+            display: none;
         }
         #stats {
             position: absolute;
@@ -70,7 +81,7 @@
         }
         #instructions {
             position: absolute;
-            top: 20px;
+            bottom: 20px;
             right: 20px;
             padding: 15px;
             font-size: 0.85rem;
@@ -79,30 +90,40 @@
         .object-type-btn {
             transition: all 0.2s;
         }
-        #velocity-line {
-            pointer-events: none;
-            position: absolute;
-            display: none;
-            border-top: 2px dashed rgba(255, 255, 255, 0.5);
-            transform-origin: left center;
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 10px;
         }
     </style>
 </head>
 <body>
 
+    <!-- Main Controls -->
     <div id="controls" class="ui-panel space-y-4">
-        <h1 class="text-xl font-bold border-bottom pb-2 mb-4 border-gray-700">Universe Engine</h1>
+        <h1 class="text-xl font-bold border-b pb-2 mb-4 border-gray-700">Universe Engine</h1>
         
         <div class="space-y-2">
-            <label class="text-sm">Object Type</label>
-            <div class="grid grid-cols-3 gap-2">
+            <label class="text-sm">New Object Type</label>
+            <div class="grid grid-cols-2 gap-2">
                 <button onclick="setObjectType('planet')" id="btn-planet" class="object-type-btn p-2 rounded bg-gray-800 text-xs hover:bg-gray-700 btn-active">Planet</button>
                 <button onclick="setObjectType('star')" id="btn-star" class="object-type-btn p-2 rounded bg-gray-800 text-xs hover:bg-gray-700">Star</button>
                 <button onclick="setObjectType('comet')" id="btn-comet" class="object-type-btn p-2 rounded bg-gray-800 text-xs hover:bg-gray-700">Comet</button>
+                <button onclick="setObjectType('blackhole')" id="btn-blackhole" class="object-type-btn p-2 rounded bg-gray-800 text-xs hover:bg-gray-700">Black Hole</button>
             </div>
         </div>
 
-        <div class="space-y-4 pt-2">
+        <div class="space-y-2 border-t border-gray-700 pt-3">
+            <label class="text-sm">Presets</label>
+            <div class="grid grid-cols-1 gap-2">
+                <button onclick="spawnSolarSystem()" class="p-2 rounded bg-blue-900/30 hover:bg-blue-800/50 text-xs border border-blue-700/30">Spawn Solar System</button>
+                <button onclick="spawnBinaryStars()" class="p-2 rounded bg-purple-900/30 hover:bg-purple-800/50 text-xs border border-purple-700/30">Spawn Binary Stars</button>
+            </div>
+        </div>
+
+        <div class="space-y-4 pt-2 border-t border-gray-700">
             <div>
                 <div class="flex justify-between text-xs mb-1">
                     <span>Gravity (G)</span>
@@ -120,20 +141,54 @@
             </div>
         </div>
 
-        <div class="flex items-center space-x-2 py-2">
-            <input type="checkbox" id="show-trails" checked>
+        <div class="flex items-center justify-between py-1">
             <label for="show-trails" class="text-xs">Show Orbit Trails</label>
+            <input type="checkbox" id="show-trails" checked>
         </div>
         
-        <div class="flex items-center space-x-2 py-1">
-            <input type="checkbox" id="show-grid" checked>
+        <div class="flex items-center justify-between py-1">
             <label for="show-grid" class="text-xs">Show Grid</label>
+            <input type="checkbox" id="show-grid" checked>
         </div>
 
         <div class="grid grid-cols-2 gap-2 mt-4">
             <button onclick="clearSystem()" class="p-2 rounded bg-red-900/40 hover:bg-red-800/60 text-xs border border-red-700/50">Clear All</button>
             <button onclick="resetView()" class="p-2 rounded bg-gray-800 hover:bg-gray-700 text-xs">Reset View</button>
         </div>
+    </div>
+
+    <!-- Object Editor Panel -->
+    <div id="object-editor" class="ui-panel space-y-4">
+        <div class="flex justify-between items-center border-b border-gray-700 pb-2">
+            <h2 class="font-bold text-blue-400">Edit Object</h2>
+            <button onclick="deselectObject()" class="text-gray-500 hover:text-white">✕</button>
+        </div>
+        
+        <div class="space-y-3">
+            <div>
+                <label class="text-xs block text-gray-400">Mass</label>
+                <input type="number" id="edit-mass" class="w-full bg-gray-900 border border-gray-700 rounded p-1 text-sm text-white">
+            </div>
+            <div>
+                <label class="text-xs block text-gray-400">Radius</label>
+                <input type="number" id="edit-radius" class="w-full bg-gray-900 border border-gray-700 rounded p-1 text-sm text-white">
+            </div>
+            <div>
+                <label class="text-xs block text-gray-400">Color</label>
+                <input type="color" id="edit-color" class="w-full h-8 bg-gray-900 border border-gray-700 rounded cursor-pointer">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="text-xs block text-gray-400">Vel X</label>
+                    <input type="number" id="edit-vx" step="0.1" class="w-full bg-gray-900 border border-gray-700 rounded p-1 text-sm text-white">
+                </div>
+                <div>
+                    <label class="text-xs block text-gray-400">Vel Y</label>
+                    <input type="number" id="edit-vy" step="0.1" class="w-full bg-gray-900 border border-gray-700 rounded p-1 text-sm text-white">
+                </div>
+            </div>
+        </div>
+        <button onclick="deleteSelected()" class="w-full p-2 mt-2 rounded bg-red-900/40 hover:bg-red-800/60 text-xs border border-red-700/50">Delete Object</button>
     </div>
 
     <div id="stats" class="ui-panel grid grid-cols-2 gap-x-4 gap-y-2">
@@ -148,10 +203,10 @@
     </div>
 
     <div id="instructions" class="ui-panel opacity-50">
-        <p>• Click and Drag: Launch object</p>
-        <p>• Mouse Wheel: Zoom in/out</p>
-        <p>• Right Click + Drag: Pan view</p>
-        <p>• C: Clear System</p>
+        <p>• Click & Drag: Launch</p>
+        <p>• Click Object: Edit details</p>
+        <p>• Right Click + Drag: Pan</p>
+        <p>• Wheel: Zoom</p>
     </div>
 
     <canvas id="simCanvas"></canvas>
@@ -167,6 +222,14 @@
         const SHOW_GRID = document.getElementById('show-grid');
         const STAT_COUNT = document.getElementById('stat-count');
         const STAT_MASS = document.getElementById('stat-mass');
+        
+        // Editor Elements
+        const EDITOR_PANEL = document.getElementById('object-editor');
+        const EDIT_MASS = document.getElementById('edit-mass');
+        const EDIT_RADIUS = document.getElementById('edit-radius');
+        const EDIT_COLOR = document.getElementById('edit-color');
+        const EDIT_VX = document.getElementById('edit-vx');
+        const EDIT_VY = document.getElementById('edit-vy');
 
         // Simulation State
         let G = 1.0;
@@ -175,21 +238,19 @@
         let currentType = 'planet';
         let isDragging = false;
         let isPanning = false;
+        let selectedObject = null;
         let startPos = { x: 0, y: 0 };
         let currentMousePos = { x: 0, y: 0 };
         
         // Camera View State
-        let camera = {
-            x: 0,
-            y: 0,
-            zoom: 1,
-            targetZoom: 1
-        };
+        let camera = { x: 0, y: 0, zoom: 1 };
 
         const types = {
-            planet: { mass: 100, radius: 8, color: '#4a90e2', trailColor: 'rgba(74, 144, 226, 0.3)' },
-            star: { mass: 10000, radius: 20, color: '#f5a623', trailColor: 'rgba(245, 166, 35, 0.3)' },
-            comet: { mass: 5, radius: 3, color: '#ffffff', trailColor: 'rgba(255, 255, 255, 0.3)' }
+            planet: { mass: 100, radius: 12, color: '#4a90e2', trailColor: 'rgba(74, 144, 226, 0.2)' },
+            star: { mass: 15000, radius: 35, color: '#f5a623', trailColor: 'rgba(245, 166, 35, 0.2)' },
+            comet: { mass: 10, radius: 5, color: '#ffffff', trailColor: 'rgba(255, 255, 255, 0.4)' },
+            blackhole: { mass: 100000, radius: 15, color: '#000000', trailColor: 'rgba(100, 50, 255, 0.3)' },
+            dust: { mass: 0.5, radius: 1, color: '#888888', trailColor: 'transparent' }
         };
 
         // Resize handler
@@ -199,11 +260,9 @@
             camera.x = canvas.width / 2;
             camera.y = canvas.height / 2;
         }
-
         window.addEventListener('resize', resize);
         resize();
 
-        // UI Helpers
         function setObjectType(type) {
             currentType = type;
             document.querySelectorAll('.object-type-btn').forEach(btn => btn.classList.remove('btn-active'));
@@ -212,16 +271,15 @@
 
         function clearSystem() {
             objects = [];
+            deselectObject();
         }
 
         function resetView() {
             camera.zoom = 1;
-            camera.targetZoom = 1;
             camera.x = canvas.width / 2;
             camera.y = canvas.height / 2;
         }
 
-        // Math Helpers
         function screenToWorld(x, y) {
             return {
                 x: (x - camera.x) / camera.zoom,
@@ -230,27 +288,38 @@
         }
 
         class CelestialBody {
-            constructor(x, y, vx, vy, type) {
+            constructor(x, y, vx, vy, type, options = {}) {
                 const config = types[type];
                 this.x = x;
                 this.y = y;
                 this.vx = vx;
                 this.vy = vy;
-                this.mass = config.mass;
-                this.radius = config.radius;
-                this.color = config.color;
-                this.trailColor = config.trailColor;
+                this.mass = options.mass || config.mass;
+                this.radius = options.radius || config.radius;
+                this.color = options.color || config.color;
                 this.type = type;
                 this.trail = [];
-                this.maxTrail = 200;
+                this.maxTrail = type === 'dust' ? 20 : 300;
                 this.destroyed = false;
+                
+                this.seed = Math.random() * 1000;
+                this.features = [];
+                const featureCount = (type === 'star' || type === 'blackhole' || type === 'dust') ? 0 : 8;
+                for(let i=0; i<featureCount; i++) {
+                    this.features.push({
+                        relX: (Math.random() - 0.5) * 1.4,
+                        relY: (Math.random() - 0.5) * 1.4,
+                        size: Math.random() * 0.4 + 0.1,
+                        opacity: Math.random() * 0.3
+                    });
+                }
             }
 
             update() {
                 this.x += this.vx * timeStep;
                 this.y += this.vy * timeStep;
 
-                if (SHOW_TRAILS.checked) {
+                if (SHOW_TRAILS.checked && this.type !== 'dust') {
                     this.trail.push({ x: this.x, y: this.y });
                     if (this.trail.length > this.maxTrail) this.trail.shift();
                 } else {
@@ -259,47 +328,187 @@
             }
 
             draw() {
-                // Draw Trail
+                if (selectedObject === this) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#007bff';
+                    ctx.lineWidth = 3 / camera.zoom;
+                    ctx.arc(this.x, this.y, this.radius + 6 / camera.zoom, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
                 if (SHOW_TRAILS.checked && this.trail.length > 1) {
                     ctx.beginPath();
-                    ctx.strokeStyle = this.trailColor;
-                    ctx.lineWidth = 1 / camera.zoom;
+                    ctx.strokeStyle = this.type === 'comet' ? 'rgba(255,255,255,0.2)' : types[this.type].trailColor;
+                    ctx.lineWidth = (this.type === 'dust' ? 0.5 : 1.5) / camera.zoom;
                     ctx.moveTo(this.trail[0].x, this.trail[0].y);
-                    for (let p of this.trail) {
-                        ctx.lineTo(p.x, p.y);
+                    for (let i=1; i<this.trail.length; i++) {
+                        ctx.lineTo(this.trail[i].x, this.trail[i].y);
                     }
                     ctx.stroke();
                 }
 
-                // Draw Glow
-                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius * 2);
+                if (this.type === 'blackhole') {
+                    this.drawBlackHole();
+                    return;
+                }
+
+                const glowSize = this.type === 'star' ? 4 : (this.type === 'dust' ? 1.2 : 1.8);
+                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius * glowSize);
                 gradient.addColorStop(0, this.color);
+                gradient.addColorStop(0.3, this.color);
                 gradient.addColorStop(1, 'transparent');
                 
                 ctx.fillStyle = gradient;
-                ctx.globalAlpha = 0.4;
+                ctx.globalAlpha = this.type === 'star' ? 0.6 : (this.type === 'dust' ? 0.8 : 0.3);
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius * 2.5, 0, Math.PI * 2);
+                ctx.arc(this.x, this.y, this.radius * glowSize, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.globalAlpha = 1.0;
 
-                // Draw Core
                 ctx.fillStyle = this.color;
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                 ctx.fill();
-                
-                // Details for specific types
-                if (this.type === 'star') {
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = this.color;
-                } else {
-                    ctx.shadowBlur = 0;
+
+                if (this.type !== 'dust') {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.clip();
+                    
+                    if (this.type === 'star') {
+                        const t = Date.now() * 0.002;
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                        for(let i=0; i<5; i++) {
+                            const ang = t + i * 1.2;
+                            ctx.beginPath();
+                            ctx.arc(this.x + Math.cos(ang) * this.radius * 0.4, this.y + Math.sin(ang * 0.8) * this.radius * 0.4, this.radius * 0.6, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    } else {
+                        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                        this.features.forEach(f => {
+                            ctx.beginPath();
+                            ctx.globalAlpha = f.opacity;
+                            ctx.arc(this.x + f.relX * this.radius, this.y + f.relY * this.radius, this.radius * f.size, 0, Math.PI * 2);
+                            ctx.fill();
+                        });
+                    }
+                    ctx.restore();
                 }
+                ctx.globalAlpha = 1.0;
+            }
+
+            drawBlackHole() {
+                // Accretion disk
+                const time = Date.now() * 0.001;
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(time * 0.5);
+                
+                const grad = ctx.createRadialGradient(0, 0, this.radius, 0, 0, this.radius * 4);
+                grad.addColorStop(0, 'rgba(0, 0, 0, 1)');
+                grad.addColorStop(0.1, 'rgba(255, 100, 0, 0.8)');
+                grad.addColorStop(0.4, 'rgba(100, 0, 255, 0.3)');
+                grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                
+                ctx.fillStyle = grad;
+                ctx.scale(1.5, 0.4);
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius * 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                // Event Horizon
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Light bending ring
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 2 / camera.zoom;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius + 2 / camera.zoom, 0, Math.PI * 2);
+                ctx.stroke();
             }
         }
 
-        // Physics Logic
+        // PRESETS
+        function spawnSolarSystem() {
+            const center = screenToWorld(canvas.width / 2, canvas.height / 2);
+            const sun = new CelestialBody(center.x, center.y, 0, 0, 'star');
+            objects.push(sun);
+
+            const planetData = [
+                { dist: 150, mass: 50, color: '#aaaaaa', name: 'Mercury' },
+                { dist: 250, mass: 120, color: '#e3bb76', name: 'Venus' },
+                { dist: 400, mass: 150, color: '#2271b3', name: 'Earth' },
+                { dist: 550, mass: 80, color: '#e27b58', name: 'Mars' }
+            ];
+
+            planetData.forEach(p => {
+                const angle = Math.random() * Math.PI * 2;
+                const x = center.x + Math.cos(angle) * p.dist;
+                const y = center.y + Math.sin(angle) * p.dist;
+                
+                // Circular orbit velocity: v = sqrt(G * M / r)
+                const speed = Math.sqrt((G * sun.mass) / p.dist);
+                const vx = Math.sin(angle) * speed;
+                const vy = -Math.cos(angle) * speed;
+
+                objects.push(new CelestialBody(x, y, vx, vy, 'planet', { mass: p.mass, color: p.color }));
+            });
+        }
+
+        function spawnBinaryStars() {
+            const center = screenToWorld(canvas.width / 2, canvas.height / 2);
+            const dist = 200;
+            const mass = 10000;
+            const speed = Math.sqrt((G * mass) / (dist * 2));
+
+            objects.push(new CelestialBody(center.x - dist, center.y, 0, speed, 'star', { mass: mass, color: '#ffcc33' }));
+            objects.push(new CelestialBody(center.x + dist, center.y, 0, -speed, 'star', { mass: mass, color: '#33ccff' }));
+        }
+
+        function selectObject(obj) {
+            if(obj.type === 'dust') return;
+            selectedObject = obj;
+            EDITOR_PANEL.style.display = 'block';
+            syncEditorFields();
+        }
+
+        function deselectObject() {
+            selectedObject = null;
+            EDITOR_PANEL.style.display = 'none';
+        }
+
+        function deleteSelected() {
+            if (!selectedObject) return;
+            selectedObject.destroyed = true;
+            deselectObject();
+        }
+
+        function syncEditorFields() {
+            if (!selectedObject) return;
+            EDIT_MASS.value = Math.round(selectedObject.mass);
+            EDIT_RADIUS.value = Math.round(selectedObject.radius);
+            EDIT_COLOR.value = selectedObject.color;
+            EDIT_VX.value = selectedObject.vx.toFixed(2);
+            EDIT_VY.value = selectedObject.vy.toFixed(2);
+        }
+
+        [EDIT_MASS, EDIT_RADIUS, EDIT_COLOR, EDIT_VX, EDIT_VY].forEach(el => {
+            el.addEventListener('input', () => {
+                if (!selectedObject) return;
+                selectedObject.mass = parseFloat(EDIT_MASS.value) || 1;
+                selectedObject.radius = parseFloat(EDIT_RADIUS.value) || 1;
+                selectedObject.color = EDIT_COLOR.value;
+                selectedObject.vx = parseFloat(EDIT_VX.value) || 0;
+                selectedObject.vy = parseFloat(EDIT_VY.value) || 0;
+            });
+        });
+
         function applyGravity() {
             for (let i = 0; i < objects.length; i++) {
                 for (let j = i + 1; j < objects.length; j++) {
@@ -311,7 +520,6 @@
                     const distSq = dx * dx + dy * dy;
                     const dist = Math.sqrt(distSq);
 
-                    // Collision check
                     if (dist < (b1.radius + b2.radius)) {
                         handleCollision(b1, b2);
                         continue;
@@ -323,240 +531,175 @@
 
                     b1.vx += ax * timeStep;
                     b1.vy += ay * timeStep;
-
                     b2.vx -= (ax * b1.mass / b2.mass) * timeStep;
                     b2.vy -= (ay * b1.mass / b2.mass) * timeStep;
                 }
             }
-            // Cleanup destroyed objects
             objects = objects.filter(o => !o.destroyed);
         }
 
         function handleCollision(b1, b2) {
-            // Merging logic: smaller gets absorbed by larger
-            if (b1.mass >= b2.mass) {
-                absorb(b1, b2);
-            } else {
-                absorb(b2, b1);
+            if (b1.type === 'dust' || b2.type === 'dust') {
+                const dust = b1.type === 'dust' ? b1 : b2;
+                const body = b1.type === 'dust' ? b2 : b1;
+                if (body.type === 'blackhole') {
+                    dust.destroyed = true;
+                    body.mass += dust.mass;
+                }
+                return;
             }
-        }
 
-        function absorb(winner, loser) {
-            // Momentum conservation: m1v1 + m2v2 = (m1+m2)v3
-            const totalMass = winner.mass + loser.mass;
-            winner.vx = (winner.vx * winner.mass + loser.vx * loser.mass) / totalMass;
-            winner.vy = (winner.vy * winner.mass + loser.vy * loser.mass) / totalMass;
+            const winner = b1.mass >= b2.mass ? b1 : b2;
+            const loser = b1.mass >= b2.mass ? b2 : b1;
             
-            winner.mass = totalMass;
-            // Radius grows sub-linearly (volume-based growth roughly)
-            winner.radius = Math.max(winner.radius, Math.pow(totalMass, 1/3) * 2);
+            // Spawn persistent dust/debris
+            const numParticles = Math.min(20, Math.floor(loser.mass / 10));
+            for (let i = 0; i < numParticles; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = (Math.random() * 2 + 1);
+                objects.push(new CelestialBody(
+                    loser.x, loser.y, 
+                    winner.vx + Math.cos(angle) * speed, 
+                    winner.vy + Math.sin(angle) * speed, 
+                    'dust', 
+                    { color: loser.color }
+                ));
+            }
+
+            if (winner.type === 'blackhole') {
+                winner.mass += loser.mass;
+                winner.radius += loser.radius * 0.1;
+            } else {
+                const totalMass = winner.mass + loser.mass;
+                winner.vx = (winner.vx * winner.mass + loser.vx * loser.mass) / totalMass;
+                winner.vy = (winner.vy * winner.mass + loser.vy * loser.mass) / totalMass;
+                winner.mass = totalMass;
+                winner.radius = Math.max(winner.radius, Math.pow(totalMass, 1/3) * 2.5);
+            }
             
             loser.destroyed = true;
+            if (selectedObject === loser) deselectObject();
         }
 
-        // Drawing Trajectory Prediction
         function drawPrediction() {
             if (!isDragging) return;
-
             const worldStart = screenToWorld(startPos.x, startPos.y);
             const worldEnd = screenToWorld(currentMousePos.x, currentMousePos.y);
-            
-            // Launch vector
             const vx = (worldStart.x - worldEnd.x) * 0.05;
             const vy = (worldStart.y - worldEnd.y) * 0.05;
 
-            // Temp object for simulation
-            let tempObj = {
-                x: worldStart.x,
-                y: worldStart.y,
-                vx: vx,
-                vy: vy,
-                mass: types[currentType].mass,
-                radius: types[currentType].radius
-            };
-
+            let tempObj = { x: worldStart.x, y: worldStart.y, vx: vx, vy: vy, mass: types[currentType].mass };
             ctx.beginPath();
             ctx.setLineDash([5, 5]);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
             ctx.moveTo(tempObj.x, tempObj.y);
 
-            // Simulate forward for 150 steps
-            for (let i = 0; i < 150; i++) {
-                // Simple Euler for prediction
+            for (let i = 0; i < 200; i++) {
                 for (let other of objects) {
+                    if (other.type === 'dust') continue;
                     const dx = other.x - tempObj.x;
                     const dy = other.y - tempObj.y;
                     const d2 = dx * dx + dy * dy;
-                    if (d2 < 100) continue; 
+                    if (d2 < 400) continue; 
                     const f = (G * tempObj.mass * other.mass) / d2;
                     tempObj.vx += (f * dx / Math.sqrt(d2) / tempObj.mass) * timeStep;
                     tempObj.vy += (f * dy / Math.sqrt(d2) / tempObj.mass) * timeStep;
                 }
                 tempObj.x += tempObj.vx * timeStep;
                 tempObj.y += tempObj.vy * timeStep;
-
-                if (i % 5 === 0) ctx.lineTo(tempObj.x, tempObj.y);
+                if (i % 6 === 0) ctx.lineTo(tempObj.x, tempObj.y);
             }
             ctx.stroke();
             ctx.setLineDash([]);
-
-            // Draw current vector line
-            ctx.beginPath();
-            ctx.strokeStyle = types[currentType].color;
-            ctx.lineWidth = 2 / camera.zoom;
-            ctx.moveTo(worldStart.x, worldStart.y);
-            ctx.lineTo(worldEnd.x, worldEnd.y);
-            ctx.stroke();
-        }
-
-        function drawBackground() {
-            // Draw Stars
-            ctx.fillStyle = "#fff";
-            // We use a fixed seed-like pattern for background stars based on coordinates
-            // (In a real game these would be static sprites)
         }
 
         function drawGrid() {
             if (!SHOW_GRID.checked) return;
-
-            const gridSize = 100;
-            const scaledGridSize = gridSize;
-            
+            const gridSize = 200;
             ctx.beginPath();
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
             ctx.lineWidth = 1 / camera.zoom;
-
-            // Simple infinite grid calculation
-            const left = ( -camera.x / camera.zoom );
-            const top = ( -camera.y / camera.zoom );
-            const right = ( (canvas.width - camera.x) / camera.zoom );
-            const bottom = ( (canvas.height - camera.y) / camera.zoom );
-
-            for (let x = Math.floor(left / gridSize) * gridSize; x < right; x += gridSize) {
-                ctx.moveTo(x, top);
-                ctx.lineTo(x, bottom);
-            }
-            for (let y = Math.floor(top / gridSize) * gridSize; y < bottom; y += gridSize) {
-                ctx.moveTo(left, y);
-                ctx.lineTo(right, y);
-            }
-            ctx.stroke();
-
-            // Center axis
-            ctx.beginPath();
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
-            ctx.moveTo(0, top); ctx.lineTo(0, bottom);
-            ctx.moveTo(left, 0); ctx.lineTo(right, 0);
+            const left = (-camera.x / camera.zoom), top = (-camera.y / camera.zoom);
+            const right = ((canvas.width - camera.x) / camera.zoom), bottom = ((canvas.height - camera.y) / camera.zoom);
+            for (let x = Math.floor(left / gridSize) * gridSize; x < right; x += gridSize) { ctx.moveTo(x, top); ctx.lineTo(x, bottom); }
+            for (let y = Math.floor(top / gridSize) * gridSize; y < bottom; y += gridSize) { ctx.moveTo(left, y); ctx.lineTo(right, y); }
             ctx.stroke();
         }
 
-        // Input Events
         canvas.addEventListener('mousedown', (e) => {
+            const worldCoords = screenToWorld(e.clientX, e.clientY);
             if (e.button === 0) {
-                isDragging = true;
-                startPos = { x: e.clientX, y: e.clientY };
-                currentMousePos = { x: e.clientX, y: e.clientY };
-            } else if (e.button === 2) {
-                isPanning = true;
-                startPos = { x: e.clientX, y: e.clientY };
-            }
+                let found = null;
+                for(let obj of objects) {
+                    if(obj.type === 'dust') continue;
+                    const dist = Math.hypot(obj.x - worldCoords.x, obj.y - worldCoords.y);
+                    if (dist < obj.radius + 10/camera.zoom) { found = obj; break; }
+                }
+                if (found) { selectObject(found); } 
+                else { isDragging = true; startPos = { x: e.clientX, y: e.clientY }; currentMousePos = { x: e.clientX, y: e.clientY }; deselectObject(); }
+            } else if (e.button === 2) { isPanning = true; startPos = { x: e.clientX, y: e.clientY }; }
         });
 
         window.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                currentMousePos = { x: e.clientX, y: e.clientY };
-            }
-            if (isPanning) {
-                const dx = e.clientX - startPos.x;
-                const dy = e.clientY - startPos.y;
-                camera.x += dx;
-                camera.y += dy;
-                startPos = { x: e.clientX, y: e.clientY };
-            }
+            if (isDragging) currentMousePos = { x: e.clientX, y: e.clientY };
+            if (isPanning) { camera.x += e.clientX - startPos.x; camera.y += e.clientY - startPos.y; startPos = { x: e.clientX, y: e.clientY }; }
         });
 
         window.addEventListener('mouseup', (e) => {
             if (e.button === 0 && isDragging) {
                 const worldStart = screenToWorld(startPos.x, startPos.y);
                 const worldEnd = screenToWorld(e.clientX, e.clientY);
-                
-                // Velocity is proportional to drag length
                 const vx = (worldStart.x - worldEnd.x) * 0.05;
                 const vy = (worldStart.y - worldEnd.y) * 0.05;
-
                 objects.push(new CelestialBody(worldStart.x, worldStart.y, vx, vy, currentType));
                 isDragging = false;
             }
-            if (e.button === 2) {
-                isPanning = false;
-            }
+            isPanning = false;
         });
 
         canvas.addEventListener('wheel', (e) => {
-            const zoomSpeed = 0.001;
-            const delta = -e.deltaY;
-            const factor = Math.pow(1.1, delta / 100);
-            
-            // Zoom at mouse position
-            const mouseWorldBefore = screenToWorld(e.clientX, e.clientY);
-            camera.zoom *= factor;
-            camera.zoom = Math.max(0.01, Math.min(10, camera.zoom));
-            const mouseWorldAfter = screenToWorld(e.clientX, e.clientY);
-            
-            camera.x += (mouseWorldAfter.x - mouseWorldBefore.x) * camera.zoom;
-            camera.y += (mouseWorldAfter.y - mouseWorldBefore.y) * camera.zoom;
-            
+            const factor = Math.pow(1.1, -e.deltaY / 150);
+            const mwBefore = screenToWorld(e.clientX, e.clientY);
+            camera.zoom = Math.max(0.001, Math.min(50, camera.zoom * factor));
+            const mwAfter = screenToWorld(e.clientX, e.clientY);
+            camera.x += (mwAfter.x - mwBefore.x) * camera.zoom;
+            camera.y += (mwAfter.y - mwBefore.y) * camera.zoom;
             e.preventDefault();
         }, { passive: false });
 
         window.addEventListener('keydown', (e) => {
-            if (e.key.toLowerCase() === 'c') clearSystem();
+            if (e.key === 'Escape') deselectObject();
+            if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
         });
 
-        // Prevent Context Menu
         canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
-        // Main Loop
         function loop() {
-            // Update constants from UI
             G = parseFloat(G_INPUT.value);
             timeStep = parseFloat(SPEED_INPUT.value);
             G_VAL.innerText = G.toFixed(1);
             SPEED_VAL.innerText = timeStep.toFixed(1);
 
-            // Physics
             applyGravity();
-            for (let obj of objects) {
-                obj.update();
-            }
+            objects.forEach(o => o.update());
 
-            // Stats
-            STAT_COUNT.innerText = objects.length;
+            STAT_COUNT.innerText = objects.filter(o => o.type !== 'dust').length;
             const totalMass = objects.reduce((sum, o) => sum + o.mass, 0);
             STAT_MASS.innerText = Math.round(totalMass).toLocaleString();
 
-            // Render
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // World space transformations
             ctx.translate(camera.x, camera.y);
             ctx.scale(camera.zoom, camera.zoom);
 
             drawGrid();
-
-            for (let obj of objects) {
-                obj.draw();
-            }
-
+            objects.forEach(o => o.draw());
             drawPrediction();
 
             requestAnimationFrame(loop);
         }
 
-        // Start
         window.onload = loop;
-
     </script>
 </body>
 </html>
