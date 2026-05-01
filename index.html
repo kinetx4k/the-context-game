@@ -1163,16 +1163,27 @@
         // Daily Card Updates
         function updateDailyCard() {
             const card = document.getElementById('start-daily-card');
+            if (!card) return;
             const p = card.querySelector('p');
-            card.classList.remove('disabled');
-            card.style.pointerEvents = 'auto';
-            p.textContent = `5 seeded rounds per day. 2x RP reward. Streak: ${UserProfile.streak} 🔥`;
+            
+            const todayStr = new Date().toISOString().split('T')[0];
+            const alreadyPlayedToday = UserProfile.lastDaily && UserProfile.lastDaily.date === todayStr;
+
+            if (alreadyPlayedToday) {
+                card.classList.add('disabled');
+                card.style.pointerEvents = 'none';
+                p.textContent = `Challenge completed! Come back tomorrow. Streak: ${UserProfile.streak} 🔥`;
+            } else {
+                card.classList.remove('disabled');
+                card.style.pointerEvents = 'auto';
+                p.textContent = `5 seeded rounds per day. 2x RP reward. Streak: ${UserProfile.streak} 🔥`;
+            }
         }
 
         // Local Storage Profile Logic
         const UserProfile = {
             name: "Player1", photo: "", rp: 0, streak: 0, history: [], lastDaily: null, 
-            progress: {}, // New field for gamemode unlock tracking
+            progress: {}, // Field for gamemode unlock tracking
             save() {
                 localStorage.setItem('dotcore_profile', JSON.stringify({ 
                     name: this.name, 
@@ -1190,11 +1201,11 @@
                 if (p) { 
                     this.name = p.name || "Player1"; 
                     this.photo = p.photo || ""; 
-                    // Changed resetKey for forced global wipe on new version
-                    const resetKey = "dotcore_reset_v6_button_and_fix";
+                    // Manual reset key check
+                    const resetKey = "dotcore_reset_v7_daily_limit_streak";
                     if (!localStorage.getItem(resetKey)) {
                         this.rp = 0; 
-                        this.progress = {}; // Reset unlocks
+                        this.progress = {}; 
                         localStorage.setItem(resetKey, "done");
                     } else {
                         this.rp = p.rp || 0; 
@@ -1209,7 +1220,6 @@
             },
             addRoundResult(actual, guess, accuracy, diffId, isDaily) {
                 this.history.push({ actual, guess, accuracy, diffId }); 
-                // Increment unlock progress ONLY if NOT a daily game
                 if (!isDaily) {
                     this.progress[diffId] = (this.progress[diffId] || 0) + 1;
                 }
@@ -1504,15 +1514,28 @@
                 this.currentRound++;
                 if(this.currentRound > this.maxRounds) {
                     if(this.isDaily) {
-                        const seedStr = new Date().toISOString().split('T')[0];
-                        const lastDateStr = UserProfile.lastDaily ? UserProfile.lastDaily.date : null; const today = new Date(seedStr);
+                        const todayStr = new Date().toISOString().split('T')[0];
+                        const lastDateStr = UserProfile.lastDaily ? UserProfile.lastDaily.date : null; 
+                        const todayDate = new Date(todayStr);
+
                         if (lastDateStr) {
-                            const lastDate = new Date(lastDateStr); const diffDays = Math.round((today - lastDate) / (1000 * 60 * 60 * 24));
-                            if (diffDays === 1) UserProfile.streak++; else if (diffDays > 1) UserProfile.streak = 1;
-                        } else UserProfile.streak = 1;
-                        UserProfile.lastDaily = { date: seedStr, acc: 0 }; UserProfile.save();
+                            const lastDate = new Date(lastDateStr); 
+                            const diffDays = Math.round((todayDate - lastDate) / (1000 * 60 * 60 * 24));
+                            if (diffDays === 1) {
+                                UserProfile.streak++; 
+                            } else if (diffDays > 1) {
+                                UserProfile.streak = 1; 
+                            }
+                            // If diffDays is 0, they already played today (handled by UI disable but logic safe here)
+                        } else {
+                            UserProfile.streak = 1; 
+                        }
+                        UserProfile.lastDaily = { date: todayStr, acc: 0 }; 
+                        UserProfile.save();
                     }
-                    renderStatsSummary({ history: this.sessionHistory, difficultyId: this.currentDifficulty.id, isDaily: this.isDaily }, 0); showView('stats-view');
+                    renderStatsSummary({ history: this.sessionHistory, difficultyId: this.currentDifficulty.id, isDaily: this.isDaily }, 0); 
+                    showView('stats-view');
+                    updateDailyCard(); // Disable card after game
                 } else {
                     if (this.isDaily) this.setDifficulty(Math.min(this.currentRound, 6)); this.startRound();
                 }
@@ -1600,8 +1623,20 @@
                 document.addEventListener('updateDifficultyMenu', () => this.setupDifficultyMenu());
                 document.addEventListener('startClassicGame', () => { this.state.sessionHistory = []; this.state.isDaily = false; this.state.rng = this.renderer.rng = Math.random; this.state.currentRound = 1; this.state.maxRounds = 5; this.state.startRound(); });
                 document.addEventListener('startDailyGame', () => {
-                    this.state.sessionHistory = []; this.state.isDaily = true; const today = new Date(); const seed = today.getUTCFullYear() * 10000 + (today.getUTCMonth() + 1) * 100 + today.getUTCDate();
-                    this.state.rng = this.renderer.rng = mulberry32(seed); this.state.setDifficulty(1); this.state.currentRound = 1; this.state.maxRounds = 5; this.state.startRound();
+                    // Pre-check for safety
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    if (UserProfile.lastDaily && UserProfile.lastDaily.date === todayStr) {
+                        showView('main-menu');
+                        return;
+                    }
+                    this.state.sessionHistory = []; this.state.isDaily = true; 
+                    const today = new Date(); 
+                    const seed = today.getUTCFullYear() * 10000 + (today.getUTCMonth() + 1) * 100 + today.getUTCDate();
+                    this.state.rng = this.renderer.rng = mulberry32(seed); 
+                    this.state.setDifficulty(1); 
+                    this.state.currentRound = 1; 
+                    this.state.maxRounds = 5; 
+                    this.state.startRound(); 
                 });
                 this.slider.addEventListener('input', (e) => this.sliderVal.textContent = e.target.value);
                 this.submitBtn.onclick = () => { this.timerSystem.stop(); this.state.checkGuess(parseInt(this.slider.value)); };
