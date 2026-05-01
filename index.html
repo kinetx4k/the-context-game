@@ -338,7 +338,7 @@
             position: relative;
             overflow: hidden;
             display: flex;
-            justify-content: center;
+            justify(center;
             align-items: center;
             border: 1px solid var(--card-border);
         }
@@ -532,7 +532,7 @@
             width: 120px;
             height: 120px;
             display: flex;
-            justify-content: center;
+            justify(center;
             align-items: center;
             font-size: 3.5rem;
             background: #1a1e28;
@@ -711,7 +711,7 @@
             background-color: #1a1e28;
             border: 2px dashed #444;
             display: flex;
-            justify-content: center;
+            justify(center;
             align-items: center;
             overflow: hidden;
             cursor: pointer;
@@ -810,7 +810,7 @@
 
         .pagination-controls {
             display: flex;
-            justify-content: center;
+            justify(center;
             align-items: center;
             gap: 15px;
             margin-top: 15px;
@@ -829,7 +829,7 @@
 
         .end-actions {
             display: flex;
-            justify-content: center;
+            justify(center;
             gap: 15px;
             margin-top: 20px;
         }
@@ -874,7 +874,7 @@
             <div class="game-card" id="start-daily-card">
                 <div class="card-tag">DAILY</div>
                 <h3>Daily Challenge</h3>
-                <p>5 seeded rounds per day. 5x RP reward. Globally shared.</p>
+                <p>5 seeded rounds per day. 2x RP reward. Globally shared.</p>
             </div>
 
             <div class="game-card disabled">
@@ -906,7 +906,7 @@
         <div class="rank-info-box">
             <div class="info-item">
                 <h4>🎯 Accuracy Rule</h4>
-                <p>Everything above <strong>85% accuracy</strong> earns you Rank Points (RP). 100% gives you a massive bonus compared to 85%!</p>
+                <p>Everything above <strong>75% accuracy (80% from Diamond+)</strong> earns you Rank Points (RP). 100% gives you a massive bonus!</p>
             </div>
             <div class="info-item">
                 <h4>⚡ Experience Bonus</h4>
@@ -914,7 +914,7 @@
             </div>
             <div class="info-item">
                 <h4>📅 Daily Bonus</h4>
-                <p>Play the Daily Challenge to receive a massive <strong>5x RP multiplier</strong> on your total score.</p>
+                <p>Play the Daily Challenge to receive a massive <strong>2x RP multiplier</strong> on your total score.</p>
             </div>
             <div class="info-item">
                 <h4>🔱 Difficulty Boost</h4>
@@ -1095,19 +1095,19 @@
             }
         };
 
-        // --- UPDATED RANKS: HIGHER MIN RP ---
+        // --- UPDATED RANKS: REDUCED RP REQUIREMENTS ---
         const RANKS = [
-            { name: "Beginner", color: "#94a3b8", icon: "🌱", pointsPerDiv: 500, minRp: 0, decay: 0 },         
-            { name: "Bronze", color: "#cd7f32", icon: "🥉", pointsPerDiv: 600, minRp: 1500, decay: 1 },       
-            { name: "Silver", color: "#c0c0c0", icon: "🥈", pointsPerDiv: 750, minRp: 3300, decay: 3 },       
-            { name: "Gold", color: "#ffd700", icon: "🥇", pointsPerDiv: 1000, minRp: 5550, decay: 6 },      
-            { name: "Platinum", color: "#e5e4e2", icon: "💎", pointsPerDiv: 1250, minRp: 8550, decay: 10 },    
-            { name: "Diamond", color: "#b9f2ff", icon: "💍", pointsPerDiv: 1750, minRp: 12300, decay: 15 },    
-            { name: "Expert", color: "#4ade80", icon: "⚡", pointsPerDiv: 2250, minRp: 17550, decay: 22 },    
-            { name: "Master", color: "#f472b6", icon: "🔥", pointsPerDiv: 3000, minRp: 24300, decay: 30 },    
-            { name: "Champion", color: "#fb7185", icon: "🏆", pointsPerDiv: 4000, minRp: 33300, decay: 42 },    
-            { name: "Legend", color: "#facc15", icon: "👑", pointsPerDiv: 5000, minRp: 45300, decay: 58 },   
-            { name: "God", color: "#ffffff", icon: "🌌", pointsPerDiv: 1000000, minRp: 60300, decay: 80 }    
+            { name: "Beginner", color: "#94a3b8", icon: "🌱", pointsPerDiv: 400, minRp: 0, decay: 0 },         
+            { name: "Bronze", color: "#cd7f32", icon: "🥉", pointsPerDiv: 500, minRp: 1000, decay: 1 },       
+            { name: "Silver", color: "#c0c0c0", icon: "🥈", pointsPerDiv: 600, minRp: 2500, decay: 3 },       
+            { name: "Gold", color: "#ffd700", icon: "🥇", pointsPerDiv: 800, minRp: 4500, decay: 6 },      
+            { name: "Platinum", color: "#e5e4e2", icon: "💎", pointsPerDiv: 1000, minRp: 7000, decay: 10 },    
+            { name: "Diamond", color: "#b9f2ff", icon: "💍", pointsPerDiv: 1300, minRp: 10000, decay: 15 },    
+            { name: "Expert", color: "#4ade80", icon: "⚡", pointsPerDiv: 1600, minRp: 14000, decay: 22 },    
+            { name: "Master", color: "#f472b6", icon: "🔥", pointsPerDiv: 2200, minRp: 19000, decay: 30 },    
+            { name: "Champion", color: "#fb7185", icon: "🏆", pointsPerDiv: 3000, minRp: 26000, decay: 42 },    
+            { name: "Legend", color: "#facc15", icon: "👑", pointsPerDiv: 4000, minRp: 35000, decay: 58 },   
+            { name: "God", color: "#ffffff", icon: "🌌", pointsPerDiv: 1000000, minRp: 48000, decay: 80 }    
         ];
 
         // Rank info helper
@@ -1161,7 +1161,7 @@
             const p = card.querySelector('p');
             card.classList.remove('disabled');
             card.style.pointerEvents = 'auto';
-            p.textContent = `5 seeded rounds per day. 5x RP reward. Streak: ${UserProfile.streak} 🔥`;
+            p.textContent = `5 seeded rounds per day. 2x RP reward. Streak: ${UserProfile.streak} 🔥`;
         }
 
         // Local Storage Profile Logic
@@ -1185,8 +1185,8 @@
                 if (p) { 
                     this.name = p.name || "Player1"; 
                     this.photo = p.photo || ""; 
-                    // Changed resetKey to trigger the rank and unlock reset as requested
-                    const resetKey = "dotcore_reset_v4_manual_wipe";
+                    // Changed resetKey to trigger the global wipe for all players on the new version
+                    const resetKey = "dotcore_reset_v5_wipe_and_daily_balance";
                     if (!localStorage.getItem(resetKey)) {
                         this.rp = 0; 
                         this.progress = {}; // Reset unlocks
@@ -1202,10 +1202,12 @@
                 if (h) this.history = h;
                 updateHomeScore(); updateDailyCard();
             },
-            addRoundResult(actual, guess, accuracy, diffId) {
+            addRoundResult(actual, guess, accuracy, diffId, isDaily) {
                 this.history.push({ actual, guess, accuracy, diffId }); 
-                // Increment unlock progress
-                this.progress[diffId] = (this.progress[diffId] || 0) + 1;
+                // Increment unlock progress ONLY if NOT a daily game
+                if (!isDaily) {
+                    this.progress[diffId] = (this.progress[diffId] || 0) + 1;
+                }
                 this.save();
             }
         };
@@ -1328,15 +1330,20 @@
                     // --- MULTIPLIERS ADJUSTED TO MAX 3.0 ---
                     const multipliers = [1, 1.4, 1.8, 2.2, 2.6, 3.0];
                     const diffMultiplier = multipliers[sessionData.difficultyId - 1] || 1;
-                    const dailyFactor = sessionData.isDaily ? 5 : 1;
+                    // --- UPDATED DAILY MULTIPLIER: 2x ---
+                    const dailyFactor = sessionData.isDaily ? 2 : 1;
                     const matchBonus = 1 + (bonusPercent * 0.01);
                     let baseScoreDiff = 0;
                     
-                    // --- STRICTER THRESHOLD: 85% ---
-                    if (avg > 85) { 
-                        baseScoreDiff = Math.pow(avg - 85, 1.2) * 2; 
+                    // --- UPDATED THRESHOLD: 75% for Lower, 80% for Diamond+ ---
+                    const currentRank = getRankInfo(UserProfile.rp);
+                    const highRankTiers = ["Diamond", "Expert", "Master", "Champion", "Legend", "God"];
+                    const threshold = highRankTiers.includes(currentRank.tier) ? 80 : 75;
+
+                    if (avg > threshold) { 
+                        baseScoreDiff = Math.pow(avg - threshold, 1.2) * 2; 
                     } else { 
-                        baseScoreDiff = avg - 85; 
+                        baseScoreDiff = avg - threshold; 
                     }
                     
                     // --- REDUCED RP GAIN: DIVIDE BY 5 ---
@@ -1362,7 +1369,7 @@
                     }
 
                     if (finalChange < -100) { 
-                        finalChange = Math.max(-100, Math.round(((avg - 85) * diffMultiplier * dailyFactor) / 5)); 
+                        finalChange = Math.max(-100, Math.round(((avg - threshold) * diffMultiplier * dailyFactor) / 5)); 
                     }
                     
                     const oldRpValue = UserProfile.rp;
@@ -1391,9 +1398,15 @@
             document.getElementById('stat-elo').textContent = `${UserProfile.rp}${eloChangeText}`;
             const reversedHistory = [...historyToUse].reverse(); const totalPages = Math.ceil(reversedHistory.length / 10);
             const startIndex = currentStatsPage * 10; const pageHistory = reversedHistory.slice(startIndex, startIndex + 10);
+            
+            // Re-calc threshold for row coloring
+            const curRank = getRankInfo(UserProfile.rp);
+            const highRankTiers = ["Diamond", "Expert", "Master", "Champion", "Legend", "God"];
+            const colorThreshold = highRankTiers.includes(curRank.tier) ? 80 : 75;
+
             pageHistory.forEach((rd, idx) => {
                 let barColor = "#ef4444"; let guessColor = "#ef4444";
-                if(rd.accuracy > 90) { barColor = "#4ade80"; guessColor = "#4ade80"; } else if (rd.accuracy > 85) { barColor = "#facc15"; guessColor = "#facc15"; }
+                if(rd.accuracy > 90) { barColor = "#4ade80"; guessColor = "#4ade80"; } else if (rd.accuracy > colorThreshold) { barColor = "#facc15"; guessColor = "#facc15"; }
                 const originalRoundNum = historyToUse.length - (startIndex + idx);
                 const row = document.createElement('div'); row.className = 'bd-row';
                 row.innerHTML = `
@@ -1476,7 +1489,7 @@
                 if (!this.isPlaying) return; const actual = this.actualDotCount; const difference = actual - guess;
                 let accuracy = 100 - (Math.abs(difference) / actual * 100); if(accuracy < 0) accuracy = 0;
                 this.isPlaying = false; this.sessionHistory.push({ actual, guess, accuracy });
-                UserProfile.addRoundResult(actual, guess, accuracy, this.currentDifficulty.id);
+                UserProfile.addRoundResult(actual, guess, accuracy, this.currentDifficulty.id, this.isDaily);
                 this.bus.publish('guess_evaluated', { guess, actual, difference, accuracy });
             }
             nextRound() {
@@ -1610,8 +1623,12 @@
                 this.inputArea.style.display = 'none'; this.resultArea.style.display = 'flex'; this.gameArea.style.display = 'flex'; this.statusText.textContent = "";
                 this.renderer.drawDots(data.actual); 
                 
-                // --- STRICTER VISUALS: 85% ---
-                this.resAcc.style.color = data.accuracy > 95 ? "#4ade80" : (data.accuracy > 85 ? "#facc15" : "#ef4444");
+                // --- Updated Visual Thresholds: 75 / 80 ---
+                const currentRank = getRankInfo(UserProfile.rp);
+                const highRankTiers = ["Diamond", "Expert", "Master", "Champion", "Legend", "God"];
+                const threshold = highRankTiers.includes(currentRank.tier) ? 80 : 75;
+
+                this.resAcc.style.color = data.accuracy > 95 ? "#4ade80" : (data.accuracy > threshold ? "#facc15" : "#ef4444");
                 animateNumber(this.resAcc, 0, data.accuracy, 1500, true); animateNumber(this.resActual, 0, data.actual, 1500, false); animateNumber(this.resGuess, 0, data.guess, 1500, false);
                 let errorText = data.difference === 0 ? "0 (perfect)" : (data.difference > 0 ? `-${Math.abs(data.difference)} (under)` : `+${Math.abs(data.difference)} (over)`);
                 this.resError.textContent = "0"; animateNumber(this.resError, 0, Math.abs(data.difference), 1500, false);
