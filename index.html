@@ -3,634 +3,864 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galaxy Engine Pro - Pixel Universe</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>DotCore</title>
     <style>
+        /* Farbpalette an Bilder angepasst (Dark Theme) */
+        :root {
+            --bg-color: #0b0e14;
+            --text-color: #ffffff;
+            --text-muted: #8fa3a0;
+            --dot-color: #ffffff; 
+            --accent-color: #7c3aed; /* Purple */
+            --accent-hover: #6d28d9;
+            --card-bg: #11151c;
+            --card-border: #1a1e28;
+            --card-hover: #1a1f2b;
+            --success-color: #facc15; /* Yellow for accuracy */
+            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
         body {
             margin: 0;
-            overflow: hidden;
-            background-color: #010103;
-            color: #eee;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- GLOBALES LOGO (OBEN LINKS) --- */
+        #global-logo {
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            z-index: 1000;
             user-select: none;
         }
-        canvas {
-            display: block;
+        #global-logo span {
+            color: var(--accent-color);
         }
-        .ui-panel {
-            background: rgba(8, 8, 16, 0.92);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.9);
-        }
-        .hotbar-btn {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .hotbar-btn:hover {
-            background: rgba(255,255,255,0.1);
-            transform: translateY(-5px);
-        }
-        .hotbar-btn.active {
-            background: #3b82f6;
-            border-color: #60a5fa;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
-        }
-        #top-menu-content {
-            display: none;
-            animation: slideIn 0.3s ease-out;
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .dropdown:hover #top-menu-content {
-            display: block;
-        }
-        .hotbar {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
+
+        /* --- NEUES HAUPTMENÜ STYLES --- */
+        #main-menu {
+            width: 100%;
             display: flex;
-            gap: 12px;
-            padding: 12px;
-            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 50px;
+            padding-top: 80px; /* Platz fürs Logo */
         }
-        #object-editor {
+
+        .top-nav {
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: flex-end; /* Logo ist jetzt fixed */
+            align-items: center;
+            box-sizing: border-box;
             position: absolute;
-            top: 80px;
+            top: 0;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            background-color: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn:hover {
+            background-color: var(--card-hover);
+            color: white;
+        }
+
+        .hero-section {
+            text-align: center;
+            margin: 40px 0 60px 0;
+            padding: 0 20px;
+        }
+
+        .hero-section h1 {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            line-height: 1.1;
+            color: white;
+        }
+
+        .hero-section h1 span {
+            color: var(--accent-color);
+        }
+
+        .hero-section p {
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+
+        .score-pill {
+            display: inline-block;
+            background-color: transparent;
+            border: 1px solid var(--card-border);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+
+        .score-pill span {
+            color: white;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 1100px;
+            width: 95%;
+        }
+
+        .game-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 25px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .game-card:hover {
+            background-color: var(--card-hover);
+            transform: translateY(-5px);
+            border-color: var(--accent-color);
+        }
+
+        .game-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .game-card.disabled:hover {
+            transform: none;
+            border-color: var(--card-border);
+        }
+
+        .card-tag {
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .game-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.4rem;
+            color: white;
+        }
+
+        .game-card p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .badge {
+            position: absolute;
+            top: 20px;
             right: 20px;
-            width: 280px;
-            padding: 20px;
-            z-index: 100;
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        .badge.free {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .badge.soon {
+            background-color: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--card-border);
+        }
+
+        /* --- DIFFICULTY VIEW STYLES --- */
+        #difficulty-view {
             display: none;
+            width: 100%;
+            flex-direction: column;
+            align-items: center;
+            padding: 100px 20px 50px 20px; /* Platz fürs Logo */
+            box-sizing: border-box;
+            min-height: 100vh;
         }
-        #stats {
+
+        .diff-header { text-align: center; margin-bottom: 30px; }
+        .diff-header h2 { font-size: 2.5rem; margin: 0 0 10px 0; font-weight: bold; }
+        .diff-header p { color: var(--text-muted); margin: 0; font-size: 1.1rem; }
+
+        .diff-list { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 600px; }
+        
+        .diff-card {
+            background-color: var(--card-bg);
+            border: 2px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .diff-card:hover { border-color: #333a4a; }
+
+        .diff-card.selected {
+            border: 2px solid transparent;
+            background: linear-gradient(var(--card-bg), var(--card-bg)) padding-box, linear-gradient(to right, #4ade80, #facc15) border-box;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .diff-info { display: flex; flex-direction: column; gap: 8px; }
+        .diff-name { font-size: 1.3rem; font-weight: 800; }
+        .diff-desc { font-size: 0.9rem; color: var(--text-muted); }
+        
+        .diff-stats { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        .diff-range { font-size: 1.1rem; font-weight: bold; letter-spacing: 1px; }
+        .diff-time { font-size: 0.85rem; color: #64748b; font-family: var(--font-mono); display: flex; align-items: center; gap: 10px;}
+        .diff-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        
+        .diff-actions { display: flex; gap: 20px; width: 100%; max-width: 600px; margin-top: 30px; }
+        .diff-btn-back { flex: 1; background-color: #0b0e14; color: var(--text-muted); border: 1px solid var(--card-border); padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 1.1rem; }
+        .diff-btn-back:hover { background-color: var(--card-hover); color: #fff;}
+        .diff-btn-start { flex: 2; background-color: var(--accent-color); color: #fff; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 1.1rem; }
+        .diff-btn-start:hover { background-color: var(--accent-hover); box-shadow: 0 0 15px rgba(124, 58, 237, 0.4); }
+
+        /* --- SPIELANSICHT STYLES --- */
+        #game-view {
+            display: none;
+            width: 100%;
+            max-width: 900px;
+            flex-direction: column;
+            align-items: center;
+            flex-grow: 1;
+            padding: 80px 20px 20px 20px;
+            box-sizing: border-box;
+        }
+
+        .game-header-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--card-border);
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        #game-area {
+            width: 100%;
+            height: 400px;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid var(--card-border);
+        }
+
+        .dot {
             position: absolute;
-            bottom: 30px;
-            left: 30px;
-            padding: 12px 20px;
-            z-index: 90;
+            background-color: var(--dot-color);
+            border-radius: 50%;
+            transform: scale(0);
+            animation: popIn 0.2s forwards;
         }
-        .nebula-glow {
-            pointer-events: none;
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 50%, rgba(50, 0, 100, 0.05) 0%, transparent 80%);
+
+        @keyframes popIn {
+            to { transform: scale(1); }
         }
+
+        .status-text {
+            color: var(--text-muted);
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-top: 15px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            min-height: 20px;
+        }
+
+        /* Eingabebereich mit Slider */
+        #input-area {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            margin-top: 30px;
+        }
+
+        .input-title {
+            color: var(--text-muted);
+            font-weight: bold;
+            letter-spacing: 2px;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .input-value {
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            line-height: 1;
+        }
+
+        input[type="range"] {
+            width: 80%;
+            max-width: 500px;
+            -webkit-appearance: none;
+            background: var(--card-border);
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+            margin-bottom: 10px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+        }
+
+        .input-hint {
+            color: #64748b;
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+        }
+
+        .action-btn {
+            background-color: var(--accent-color);
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .action-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        /* Resultat Bereich */
+        #result-area {
+            display: none;
+            width: 100%;
+            margin-top: 30px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .accuracy-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .acc-val {
+            font-size: 3.5rem;
+            color: var(--success-color);
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .acc-label {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            margin-top: 5px;
+        }
+
+        .detail-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .detail-row {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .detail-label {
+            color: var(--text-muted);
+            width: 60px;
+        }
+
+        .detail-val {
+            font-weight: bold;
+        }
+        
+        .val-under { color: #38bdf8; }
+        .val-over { color: #ef4444; }
+        .val-perfect { color: #4ade80; }
+
     </style>
 </head>
 <body>
 
-    <div class="nebula-glow"></div>
+    <!-- GLOBALES LOGO -->
+    <div id="global-logo">Dot<span>Core</span></div>
 
-    <div class="absolute top-5 left-5 dropdown z-[200]">
-        <button class="ui-panel px-6 py-3 font-bold flex items-center gap-2 hover:bg-gray-800 transition-colors">
-            <span>☰ Universe Control</span>
-        </button>
-        <div id="top-menu-content" class="ui-panel mt-2 p-4 w-64 space-y-4">
-            <div class="space-y-2">
-                <p class="text-[0.65rem] uppercase text-gray-500 font-bold">Presets</p>
-                <button onclick="spawnSolarSystem()" class="w-full text-left p-2 hover:bg-white/10 rounded text-xs">Full Solar System</button>
-                <button onclick="spawnTripleSystem()" class="w-full text-left p-2 hover:bg-white/10 rounded text-xs">Stable Triple Star</button>
-                <button onclick="spawnAtomicSystem()" class="w-full text-left p-2 hover:bg-white/10 rounded text-xs">Atomic BH System</button>
-                <button onclick="spawnGalaxySpiral()" class="w-full text-left p-2 hover:bg-white/10 rounded text-xs">Galaxy Spiral (Large)</button>
+    <!-- HAUPTMENÜ -->
+    <div id="main-menu">
+        <nav class="top-nav">
+            <div class="nav-actions">
+                <button class="nav-btn">Ranks</button>
+                <button class="nav-btn">Stats</button>
+                <button class="nav-btn">Profile</button>
+            </div>
+        </nav>
+
+        <div class="hero-section">
+            <h1>How well does<br>your brain <span>count?</span></h1>
+            <p>It can be difficult to count lots of things, really fast.<br>
+            For some it's just really hard to count.<br>
+            After a countdown, some dots will flash.<br>
+            Your job is simply to just count them.<br>
+            Simply put: lock in.</p>
+            <div class="score-pill">YOUR ANS SCORE <span>--</span></div>
+        </div>
+
+        <div class="card-grid">
+            <div class="game-card" id="start-classic-card">
+                <div class="card-tag">CORE</div>
+                <h3>Classic</h3>
+                <p>10 rounds, choose your difficulty. Your bread and butter.</p>
+            </div>
+
+            <div class="game-card disabled">
+                <span class="badge free">FREE</span>
+                <div class="card-tag">DAILY</div>
+                <h3>Daily Challenge</h3>
+                <p>One seeded round per day. Globally shared. Shareable result.</p>
+            </div>
+
+            <div class="game-card disabled">
+                <div class="card-tag">DIAGNOSTIC</div>
+                <h3>Threshold Finder</h3>
+                <p>Locate exactly where your brain switches from knowing to guessing.</p>
+            </div>
+
+            <div class="game-card disabled">
+                <span class="badge soon">SOON</span>
+                <div class="card-tag">SPEED</div>
+                <h3>Speed Run</h3>
+                <p>60 seconds. As many rounds as possible.</p>
+            </div>
+
+            <div class="game-card disabled">
+                <span class="badge soon">SOON</span>
+                <div class="card-tag">LAB</div>
+                <h3>Illusion Lab</h3>
+                <p>Curated rounds to expose your perceptual biases.</p>
+            </div>
+
+            <div class="game-card disabled">
+                <span class="badge soon">SOON</span>
+                <div class="card-tag">VERSUS</div>
+                <h3>Versus</h3>
+                <p>Two players, same flash. Closest guess wins.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCHWIERIGKEITSAUSWAHL -->
+    <div id="difficulty-view">
+        <div class="diff-header">
+            <h2>Choose Difficulty</h2>
+            <p>Classic Mode &middot; 10 Rounds</p>
+        </div>
+        
+        <div class="diff-list" id="difficulty-list">
+            <!-- JS generiert -->
+        </div>
+
+        <div class="diff-actions">
+            <button class="diff-btn-back" id="diff-back-btn">Back</button>
+            <button class="diff-btn-start" id="diff-start-btn">Start &rarr;</button>
+        </div>
+    </div>
+
+    <!-- SPIELANSICHT -->
+    <div id="game-view">
+        
+        <div class="game-header-bar">
+            <span id="round-display">Round 1 of 10</span>
+            <span id="diff-display">MEDIUM</span>
+        </div>
+
+        <div id="game-area"></div>
+        <div class="status-text" id="status-text"></div>
+
+        <div id="input-area">
+            <div class="input-title">HOW MANY DOTS?</div>
+            <div class="input-value" id="slider-val">32</div>
+            <input type="range" id="guess-slider" min="1" max="1000" value="32">
+            <div class="input-hint">Slider &middot; type a number &middot; Enter to submit</div>
+            <button id="submit-btn" class="action-btn">Submit</button>
+        </div>
+
+        <div id="result-area">
+            <div class="accuracy-box">
+                <div class="acc-val" id="res-acc">0.0%</div>
+                <div class="acc-label">ACCURACY</div>
             </div>
             
-            <div class="space-y-2 border-t border-white/10 pt-3">
-                <p class="text-[0.65rem] uppercase text-gray-500 font-bold">Simulation Settings</p>
-                <div class="flex items-center justify-between">
-                    <span class="text-xs">Time Flow</span>
-                    <button id="pause-btn" onclick="togglePause()" class="text-[10px] bg-blue-600 px-2 py-1 rounded">PAUSE</button>
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="text-xs">Collision Mode</span>
-                    <select id="collision-mode" class="bg-gray-900 text-[10px] p-1 rounded border border-white/20">
-                        <option value="merge">Merge Objects</option>
-                        <option value="bounce">Bounce (Elastic)</option>
-                    </select>
-                </div>
-                <div class="flex items-center justify-between">
-                    <label class="text-xs">Universe Limit</label>
-                    <span class="text-[10px] text-gray-400">20000 Units</span>
-                </div>
+            <div class="detail-box">
+                <div class="detail-row"><span class="detail-label">ACTUAL</span> <span class="detail-val" id="res-actual">0</span></div>
+                <div class="detail-row"><span class="detail-label">GUESS</span> <span class="detail-val" id="res-guess">0</span></div>
+                <div class="detail-row"><span class="detail-label">ERROR</span> <span class="detail-val" id="res-error">0</span></div>
             </div>
 
-            <div class="grid grid-cols-2 gap-2 border-t border-white/10 pt-3">
-                <button onclick="clearSystem()" class="p-2 rounded bg-red-900/40 hover:bg-red-800/60 text-[10px] border border-red-700/50 uppercase font-bold">Wipe Universe</button>
-                <button onclick="resetView()" class="p-2 rounded bg-gray-800 hover:bg-gray-700 text-[10px] uppercase font-bold text-center">Center View</button>
-            </div>
+            <button id="next-btn" class="action-btn">Next &rarr;</button>
         </div>
+        
     </div>
-
-    <div class="hotbar ui-panel">
-        <button onclick="setObjectType('planet')" id="hot-planet" class="hotbar-btn active px-4 py-2 rounded-lg flex flex-col items-center gap-1">
-            <div class="w-3 h-3 rounded-full bg-blue-400"></div>
-            <span class="text-[10px] font-bold">PLANET</span>
-        </button>
-        <button onclick="setObjectType('star')" id="hot-star" class="hotbar-btn px-4 py-2 rounded-lg flex flex-col items-center gap-1">
-            <div class="w-4 h-4 rounded-full bg-yellow-400 shadow-[0_0_10px_rgba(253,224,71,0.8)]"></div>
-            <span class="text-[10px] font-bold">STAR</span>
-        </button>
-        <button onclick="setObjectType('giant')" id="hot-giant" class="hotbar-btn px-4 py-2 rounded-lg flex flex-col items-center gap-1">
-            <div class="w-5 h-5 rounded-full bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.8)]"></div>
-            <span class="text-[10px] font-bold">GIANT</span>
-        </button>
-        <button onclick="setObjectType('comet')" id="hot-comet" class="hotbar-btn px-4 py-2 rounded-lg flex flex-col items-center gap-1">
-            <div class="w-2 h-2 rounded-full bg-cyan-200 rotate-45 border-r-4 border-blue-400 shadow-[0_0_8px_rgba(34,211,238,1)]"></div>
-            <span class="text-[10px] font-bold">COMET</span>
-        </button>
-        <button onclick="setObjectType('blackhole')" id="hot-blackhole" class="hotbar-btn px-4 py-2 rounded-lg flex flex-col items-center gap-1">
-            <div class="w-3 h-3 rounded-full bg-black border border-purple-500"></div>
-            <span class="text-[10px] font-bold">BH</span>
-        </button>
-    </div>
-
-    <div id="object-editor" class="ui-panel space-y-4">
-        <div class="flex justify-between items-center border-b border-gray-700 pb-2">
-            <h2 class="font-bold text-blue-400">Object Settings</h2>
-            <button onclick="deselectObject()" class="text-gray-500 hover:text-white">✕</button>
-        </div>
-        <div class="space-y-3">
-            <div>
-                <label class="text-[10px] block text-gray-500 uppercase font-bold">Body Mass</label>
-                <input type="number" id="edit-mass" class="w-full bg-gray-900 border border-gray-700 rounded p-1 text-sm outline-none focus:border-blue-500">
-            </div>
-            <div>
-                <label class="text-[10px] block text-gray-500 uppercase font-bold">Visual Radius</label>
-                <input type="number" id="edit-radius" class="w-full bg-gray-900 border border-gray-700 rounded p-1 text-sm outline-none focus:border-blue-500">
-            </div>
-            <div>
-                <label class="text-[10px] block text-gray-500 uppercase font-bold">Color Tint</label>
-                <input type="color" id="edit-color" class="w-full h-8 bg-gray-900 border border-gray-700 rounded cursor-pointer">
-            </div>
-            <div class="flex gap-2">
-                <button onclick="focusOnObject()" class="flex-1 p-2 rounded bg-blue-900/40 text-[10px] border border-blue-700/50 uppercase font-bold">Follow</button>
-                <button onclick="pixelateSelected()" class="flex-1 p-2 rounded bg-purple-900/40 text-[10px] border border-purple-700/50 uppercase font-bold">Pixelate</button>
-            </div>
-        </div>
-        <button onclick="deleteSelected()" class="w-full p-2 mt-2 rounded bg-red-900/40 text-[10px] border border-red-700/50 uppercase font-bold hover:bg-red-800">Destroy</button>
-    </div>
-
-    <div id="stats" class="ui-panel flex gap-8">
-        <div class="flex flex-col">
-            <span class="text-[0.6rem] text-gray-500 uppercase font-bold tracking-widest">Active Bodies</span>
-            <span id="stat-count" class="text-xl font-black text-white">0</span>
-        </div>
-        <div class="flex flex-col">
-            <span class="text-[0.6rem] text-gray-500 uppercase font-bold tracking-widest">Universal Mass</span>
-            <span id="stat-mass" class="text-xl font-black text-blue-500">0</span>
-        </div>
-    </div>
-
-    <canvas id="simCanvas"></canvas>
 
     <script>
-        const canvas = document.getElementById('simCanvas');
-        const ctx = canvas.getContext('2d');
-        const STAT_COUNT = document.getElementById('stat-count');
-        const STAT_MASS = document.getElementById('stat-mass');
-        const EDITOR_PANEL = document.getElementById('object-editor');
-        const EDIT_MASS = document.getElementById('edit-mass');
-        const EDIT_RADIUS = document.getElementById('edit-radius');
-        const EDIT_COLOR = document.getElementById('edit-color');
-        const COLLISION_MODE = document.getElementById('collision-mode');
-        const PAUSE_BTN = document.getElementById('pause-btn');
-
-        let G = 1.0; 
-        let timeScale = 1.0;
-        let isPaused = false;
-        let objects = [];
-        let nebulae = [];
-        let currentType = 'planet';
-        let isDragging = false, isPanning = false;
-        let selectedObject = null;
-        let trackedObject = null;
-        let startPos = { x: 0, y: 0 }, currentMousePos = { x: 0, y: 0 };
-        let camera = { x: 0, y: 0, zoom: 1 };
-        
-        const UNIVERSE_LIMIT = 20000;
-
-        const types = {
-            planet: { mass: 100, radius: 12, color: '#4a90e2', trailColor: 'rgba(74, 144, 226, 0.1)' },
-            star: { mass: 40000, radius: 45, color: '#f5a623', trailColor: 'rgba(245, 166, 35, 0.1)' },
-            giant: { mass: 150000, radius: 80, color: '#ff4444', trailColor: 'rgba(255, 68, 68, 0.1)' },
-            comet: { mass: 5, radius: 4, color: '#99ffff', trailColor: 'rgba(153, 255, 255, 0.4)' },
-            blackhole: { mass: 500000, radius: 25, color: '#000000', trailColor: 'rgba(120, 60, 255, 0.2)' },
-            dust: { mass: 0.1, radius: 1, color: '#888888', trailColor: 'transparent' }
+        // --- NAVIGATION LOGIK ---
+        const showView = (viewId) => {
+            ['main-menu', 'difficulty-view', 'game-view'].forEach(id => {
+                document.getElementById(id).style.display = (id === viewId) ? (id === 'game-view' ? 'flex' : 'flex') : 'none';
+            });
         };
 
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            if (objects.length === 0) resetView();
-        }
-        window.addEventListener('resize', resize);
-        resize();
+        document.getElementById('global-logo').addEventListener('click', () => showView('main-menu'));
+        document.getElementById('start-classic-card').addEventListener('click', () => showView('difficulty-view'));
+        document.getElementById('diff-back-btn').addEventListener('click', () => showView('main-menu'));
 
-        function setObjectType(type) {
-            currentType = type;
-            document.querySelectorAll('.hotbar-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`hot-${type}`).classList.add('active');
-        }
+        // Start Spiel Button
+        document.getElementById('diff-start-btn').addEventListener('click', () => {
+            showView('game-view');
+            document.dispatchEvent(new Event('startClassicGame'));
+        });
 
-        function togglePause() {
-            isPaused = !isPaused;
-            PAUSE_BTN.innerText = isPaused ? 'RESUME' : 'PAUSE';
-            PAUSE_BTN.classList.toggle('bg-red-600', isPaused);
-            PAUSE_BTN.classList.toggle('bg-blue-600', !isPaused);
-        }
 
-        function clearSystem() { objects = []; nebulae = []; deselectObject(); trackedObject = null; }
-        function resetView() { camera.zoom = 1; camera.x = canvas.width / 2; camera.y = canvas.height / 2; trackedObject = null; }
-        function screenToWorld(x, y) { return { x: (x - camera.x) / camera.zoom, y: (y - camera.y) / camera.zoom }; }
+        /**
+         * ---------------------------------------------------------
+         * KOMPLEXE SPIELLOGIK FÜR "DOTCORE"
+         * ---------------------------------------------------------
+         */
 
-        class NebulaCloud {
-            constructor(x, y, baseColor) {
-                this.x = x; this.y = y;
-                this.radius = 10;
-                this.maxRadius = 300 + Math.random() * 600;
-                this.opacity = 0.8;
-                this.expansion = 0.4 + Math.random() * 0.6;
-                this.colors = ['#00ffff', '#ff6600', '#ff0066', '#4400ff'];
-                this.color = this.colors[Math.floor(Math.random() * this.colors.length)];
-                this.rotation = Math.random() * Math.PI * 2;
-                this.rotSpeed = (Math.random() - 0.5) * 0.01;
+        const DIFFICULTIES = [
+            { id: 1, name: "Beginner", desc: "Uniform dots, evenly spread", minDots: 3, maxDots: 10, showTimeMs: 5000, errorMarginPct: 0.0, color: "#4ade80" },
+            { id: 2, name: "Easy", desc: "Slight size variation", minDots: 10, maxDots: 25, showTimeMs: 5000, errorMarginPct: 0.1, color: "#38bdf8" },
+            { id: 3, name: "Medium", desc: "Clustering, moderate variation", minDots: 25, maxDots: 50, showTimeMs: 5000, errorMarginPct: 0.15, color: "#a855f7" },
+            { id: 4, name: "Hard", desc: "Heavy clustering, size variation", minDots: 50, maxDots: 100, showTimeMs: 5000, errorMarginPct: 0.2, color: "#f97316" },
+            { id: 5, name: "Expert", desc: "Overlapping, mixed sizes + noise", minDots: 100, maxDots: 200, showTimeMs: 5000, errorMarginPct: 0.25, color: "#f43f5e" },
+            { id: 6, name: "Inhuman", desc: "Maximum density, chaotic layout", minDots: 250, maxDots: 750, showTimeMs: 2500, errorMarginPct: 0.3, color: "#ef4444" }
+        ];
+
+        class GameEventBus {
+            constructor() { this.events = {}; }
+            subscribe(event, callback) {
+                if (!this.events[event]) this.events[event] = [];
+                this.events[event].push(callback);
             }
-            update() {
-                if (!isPaused) {
-                    if (this.radius < this.maxRadius) this.radius += this.expansion;
-                    this.opacity -= 0.0002;
-                    this.rotation += this.rotSpeed;
-                }
-            }
-            draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                ctx.rotate(this.rotation);
-                const grad = ctx.createRadialGradient(0, 0, this.radius * 0.1, 0, 0, this.radius);
-                grad.addColorStop(0, this.color + '00');
-                grad.addColorStop(0.2, this.color + Math.floor(Math.min(1, Math.max(0, this.opacity)) * 255).toString(16).padStart(2, '0'));
-                grad.addColorStop(0.5, '#ffffff22');
-                grad.addColorStop(1, 'transparent');
-                ctx.fillStyle = grad;
-                ctx.beginPath();
-                for(let i=0; i<8; i++) {
-                    const a = (i/8) * Math.PI * 2;
-                    const r = this.radius * (0.8 + Math.random() * 0.4);
-                    ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r);
-                }
-                ctx.closePath();
-                ctx.fill();
-                ctx.restore();
+            publish(event, data) {
+                if (this.events[event]) this.events[event].forEach(cb => cb(data));
             }
         }
 
-        class CelestialBody {
-            constructor(x, y, vx, vy, type, options = {}) {
-                const config = types[type];
-                this.x = x; this.y = y; this.vx = vx; this.vy = vy;
-                this.mass = options.mass || config.mass;
-                this.radius = options.radius || config.radius;
-                this.color = options.color || config.color;
-                this.type = type;
-                this.trail = [];
-                this.destroyed = false;
-                this.features = [];
-                if (type === 'planet') {
-                    for(let i=0; i<8; i++) this.features.push({rx: (Math.random()-0.5)*1.6, ry: (Math.random()-0.5)*1.6, s: Math.random()*0.4+0.1, op: Math.random()*0.35});
-                }
+        class GameState {
+            constructor(eventBus) {
+                this.bus = eventBus;
+                this.currentRound = 1;
+                this.maxRounds = 10;
+                this.currentDifficulty = DIFFICULTIES[2]; // Default Medium
+                this.actualDotCount = 0;
+                this.isPlaying = false;
             }
-            update() {
-                if (isPaused) return;
-                this.x += this.vx * timeScale;
-                this.y += this.vy * timeScale;
+
+            setDifficulty(levelId) {
+                this.currentDifficulty = DIFFICULTIES.find(d => d.id === levelId);
+            }
+
+            startRound() {
+                this.isPlaying = true;
+                const min = this.currentDifficulty.minDots;
+                const max = this.currentDifficulty.maxDots;
+                this.actualDotCount = Math.floor(Math.random() * (max - min + 1)) + min;
                 
-                const dist = Math.hypot(this.x, this.y);
-                if (dist > UNIVERSE_LIMIT) {
-                    const nx = this.x / dist;
-                    const ny = this.y / dist;
-                    const dot = this.vx * nx + this.vy * ny;
-                    this.vx -= 2 * dot * nx;
-                    this.vy -= 2 * dot * ny;
-                    this.x = nx * (UNIVERSE_LIMIT - 1);
-                    this.y = ny * (UNIVERSE_LIMIT - 1);
-                }
-
-                if (this.type !== 'dust') {
-                    this.trail.push({x: this.x, y: this.y});
-                    if (this.trail.length > 300) this.trail.shift();
-                }
-            }
-            draw() {
-                if (selectedObject === this) {
-                    ctx.beginPath(); ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 3/camera.zoom;
-                    ctx.arc(this.x, this.y, this.radius + 8/camera.zoom, 0, Math.PI * 2); ctx.stroke();
-                }
-                if (this.trail.length > 1) {
-                    ctx.beginPath(); ctx.strokeStyle = types[this.type].trailColor || 'rgba(255,255,255,0.05)'; 
-                    ctx.lineWidth = (this.type === 'comet' ? 2 : 1.2)/camera.zoom;
-                    ctx.moveTo(this.trail[0].x, this.trail[0].y);
-                    for(let i=1; i<this.trail.length; i++) ctx.lineTo(this.trail[i].x, this.trail[i].y);
-                    ctx.stroke();
-                }
-                
-                if (this.type === 'blackhole') { this.drawBlackHole(); return; }
-
-                const gSize = (this.type === 'star' || this.type === 'giant') ? 5 : (this.type === 'comet' ? 4 : 1.6);
-                const glow = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius * gSize);
-                glow.addColorStop(0, this.color);
-                glow.addColorStop(0.2, this.color);
-                glow.addColorStop(1, 'transparent');
-                
-                ctx.save();
-                if (this.type === 'comet') {
-                    ctx.shadowBlur = 20 / camera.zoom;
-                    ctx.shadowColor = this.color;
-                }
-                ctx.globalAlpha = (this.type === 'star' || this.type === 'giant') ? 0.6 : (this.type === 'comet' ? 0.8 : 0.25); 
-                ctx.fillStyle = glow;
-                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * gSize, 0, Math.PI * 2); ctx.fill();
-                ctx.globalAlpha = 1.0;
-
-                ctx.fillStyle = this.color; 
-                if (this.type === 'dust') {
-                    ctx.fillRect(this.x-this.radius, this.y-this.radius, this.radius*2, this.radius*2);
-                } else {
-                    ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill();
-                }
-                ctx.restore();
-
-                if (this.features.length > 0) {
-                    ctx.save(); ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2); ctx.clip();
-                    ctx.fillStyle = 'rgba(0,0,0,0.4)';
-                    this.features.forEach(f => { 
-                        ctx.beginPath(); ctx.globalAlpha = f.op; 
-                        ctx.arc(this.x + f.rx*this.radius, this.y + f.ry*this.radius, this.radius*f.s, 0, Math.PI*2); ctx.fill(); 
-                    });
-                    ctx.restore();
-                }
-            }
-            drawBlackHole() {
-                ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(Date.now()*0.0008);
-                const g = ctx.createRadialGradient(0,0,this.radius,0,0,this.radius*8);
-                g.addColorStop(0, '#000'); g.addColorStop(0.1, '#ff6600'); g.addColorStop(0.4, '#4400ff'); g.addColorStop(1, 'transparent');
-                ctx.fillStyle = g; ctx.scale(2.5, 0.4); ctx.beginPath(); ctx.arc(0,0,this.radius*8,0,Math.PI*2); ctx.fill();
-                ctx.restore(); ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2); ctx.fill();
-                ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1/camera.zoom;
-                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius+1, 0, Math.PI*2); ctx.stroke();
-            }
-        }
-
-        function triggerSupernova(x, y, color) {
-            for(let i=0; i<15; i++) {
-                nebulae.push(new NebulaCloud(x + (Math.random()-0.5)*100, y + (Math.random()-0.5)*100, color));
-            }
-            for(let i=0; i<1000; i++) {
-                const ang = Math.random()*Math.PI*2, spd = Math.random()*25 + 2;
-                objects.push(new CelestialBody(x, y, Math.cos(ang)*spd, Math.sin(ang)*spd, 'dust', { color: color }));
-            }
-        }
-
-        function spawnSolarSystem() {
-            clearSystem();
-            const sun = new CelestialBody(0, 0, 0, 0, 'star', { mass: 120000, radius: 85, color: '#ffcc33' });
-            objects.push(sun);
-            const planets = [
-                { d: 250, m: 15, r: 6, c: '#a5a5a5' }, { d: 450, m: 90, r: 12, c: '#efb35d' },
-                { d: 700, m: 100, r: 13, c: '#2271b3' }, { d: 1000, m: 60, r: 9, c: '#e27b58' },
-                { d: 1800, m: 2000, r: 42, c: '#d39c7e' }, { d: 2600, m: 1500, r: 36, c: '#c5ab6e' },
-                { d: 3400, m: 800, r: 24, c: '#b5e3e3' }, { d: 4200, m: 800, r: 23, c: '#6081ff' }
-            ];
-            planets.forEach(p => {
-                const a = Math.random()*Math.PI*2, s = Math.sqrt((G*sun.mass)/p.d);
-                objects.push(new CelestialBody(Math.cos(a)*p.d, Math.sin(a)*p.d, Math.sin(a)*s, -Math.cos(a)*s, 'planet', { mass: p.mass, radius: p.r, color: p.c }));
-            });
-            for(let i=0; i<500; i++) {
-                const d = 1300 + Math.random()*200, a = Math.random()*Math.PI*2, s = Math.sqrt((G*sun.mass)/d);
-                objects.push(new CelestialBody(Math.cos(a)*d, Math.sin(a)*d, Math.sin(a)*s, -Math.cos(a)*s, 'dust', { color: '#777' }));
-            }
-            camera.zoom = 0.15;
-        }
-
-        function spawnTripleSystem() {
-            clearSystem();
-            const d = 150, m = 50000, s = Math.sqrt((G*m)/(d*2));
-            objects.push(new CelestialBody(-d, 0, 0, s, 'star', { mass: m, color: '#ff3366' }));
-            objects.push(new CelestialBody(d, 0, 0, -s, 'star', { mass: m, color: '#33ffcc' }));
-            const d3 = 1000, m3 = 20000, s3 = Math.sqrt((G*(m*2))/d3);
-            objects.push(new CelestialBody(0, d3, s3, 0, 'star', { mass: m3, color: '#ffff33' }));
-            camera.zoom = 0.4;
-        }
-
-        function spawnAtomicSystem() {
-            clearSystem();
-            const bh = new CelestialBody(0,0,0,0, 'blackhole', { mass: 800000 });
-            objects.push(bh);
-            for(let i=0; i<6; i++) {
-                const dist = 400 + i * 150;
-                const angle = Math.random() * Math.PI * 2;
-                const speed = Math.sqrt((G*bh.mass)/dist);
-                const vx = Math.sin(angle) * speed;
-                const vy = -Math.cos(angle) * speed;
-                objects.push(new CelestialBody(Math.cos(angle)*dist, Math.sin(angle)*dist, vx, vy, 'star', { 
-                    mass: 5000, color: `hsl(${i*60}, 100%, 70%)`, radius: 15 
-                }));
-            }
-            camera.zoom = 0.3;
-        }
-
-        function spawnGalaxySpiral() {
-            clearSystem();
-            const core = new CelestialBody(0,0,0,0, 'blackhole', { mass: 1000000 });
-            objects.push(core);
-            for(let i=0; i<2000; i++) {
-                const angle = i * 0.05, dist = 400 + i * 4 + Math.random()*200;
-                const s = Math.sqrt((G*core.mass)/dist);
-                objects.push(new CelestialBody(Math.cos(angle)*dist, Math.sin(angle)*dist, Math.sin(angle)*s, -Math.cos(angle)*s, 'dust', { color: `hsl(${i%360}, 80%, 70%)` }));
-            }
-            camera.zoom = 0.08;
-        }
-
-        function applyPhysics() {
-            if (isPaused) return;
-            
-            for(let i=0; i<objects.length; i++) {
-                const b1 = objects[i];
-                for(let j=i+1; j<objects.length; j++) {
-                    const b2 = objects[j];
-                    const dx = b2.x-b1.x, dy = b2.y-b1.y, d2 = dx*dx+dy*dy, d = Math.sqrt(d2);
-                    
-                    if (d < b1.radius+b2.radius) {
-                        handleCollision(b1, b2);
-                        continue;
-                    }
-
-                    const f = (G*b1.mass*b2.mass)/d2;
-                    const ax = (f*dx/d)/b1.mass, ay = (f*dy/d)/b1.mass;
-                    
-                    b1.vx += ax * timeScale; b1.vy += ay * timeScale;
-                    b2.vx -= (ax*b1.mass/b2.mass) * timeScale; 
-                    b2.vy -= (ay*b1.mass/b2.mass) * timeScale;
-
-                    if ((b1.type === 'blackhole' || b2.type === 'blackhole') && d < 1200) {
-                        const bh = b1.type === 'blackhole' ? b1 : b2, target = b1.type === 'blackhole' ? b2 : b1;
-                        const dr = (target.type === 'dust' ? 0.05 : 3.0) * timeScale;
-                        if (target.mass > dr) { 
-                            target.mass -= dr; bh.mass += dr; 
-                            if (target.type !== 'dust') target.radius = Math.max(2, target.radius - 0.01); 
-                        } else target.destroyed = true;
-                    }
-                }
-            }
-
-            nebulae.forEach(n => {
-                objects.forEach(bh => {
-                    if (bh.type === 'blackhole') {
-                        const dx = bh.x - n.x, dy = bh.y - n.y;
-                        const d2 = dx*dx + dy*dy, d = Math.sqrt(d2);
-                        if (d < 1500) { 
-                            const force = 5.0 * (1 - d/1500);
-                            n.x += (dx/d) * force;
-                            n.y += (dy/d) * force;
-                            if (d < bh.radius) n.opacity = 0;
-                        }
-                    }
+                this.bus.publish('round_started', {
+                    round: this.currentRound,
+                    maxRounds: this.maxRounds,
+                    diffName: this.currentDifficulty.name,
+                    dotCount: this.actualDotCount,
+                    duration: this.currentDifficulty.showTimeMs,
+                    maxSlider: max * 2 // Slider max ist etwas höher als theoretisches Maximum
                 });
-            });
-
-            objects = objects.filter(o => !o.destroyed);
-            nebulae = nebulae.filter(n => n.opacity > 0);
-            nebulae.forEach(n => n.update());
-        }
-
-        function handleCollision(b1, b2) {
-            const mode = COLLISION_MODE.value;
-            if (mode === 'bounce') {
-                const nx = (b2.x - b1.x) / (b1.radius + b2.radius);
-                const ny = (b2.y - b1.y) / (b1.radius + b2.radius);
-                const p = 2 * (b1.vx * nx + b1.vy * ny - b2.vx * nx - b2.vy * ny) / (b1.mass + b2.mass);
-                b1.vx -= p * b2.mass * nx; b1.vy -= p * b2.mass * ny;
-                b2.vx += p * b1.mass * nx; b2.vy += p * b1.mass * ny;
-                return;
             }
 
-            const winner = b1.mass >= b2.mass ? b1 : b2, loser = b1.mass >= b2.mass ? b2 : b1;
-            if (winner.type === 'blackhole') { winner.mass += loser.mass; loser.destroyed = true; return; }
-            
-            const pixelCount = Math.min(2000, Math.floor(loser.mass * 2));
-            for(let i=0; i<pixelCount; i++) {
-                const ang = Math.random()*Math.PI*2, spd = Math.random()*10 + 1;
-                objects.push(new CelestialBody(loser.x, loser.y, winner.vx + Math.cos(ang)*spd, winner.vy + Math.sin(ang)*spd, 'dust', { color: loser.color }));
+            checkGuess(guess) {
+                if (!this.isPlaying) return;
+                
+                const actual = this.actualDotCount;
+                const difference = actual - guess;
+                
+                // Accuracy berechnen (0 bis 100%)
+                let accuracy = 100 - (Math.abs(difference) / actual * 100);
+                if(accuracy < 0) accuracy = 0;
+
+                this.isPlaying = false;
+                
+                this.bus.publish('guess_evaluated', {
+                    guess: guess,
+                    actual: actual,
+                    difference: difference,
+                    accuracy: accuracy
+                });
             }
 
-            if ((winner.type === 'star' || winner.type === 'giant') && loser.mass > 200) {
-                triggerSupernova(loser.x, loser.y, loser.color);
-            }
-            
-            const tm = winner.mass + loser.mass;
-            winner.vx = (winner.vx*winner.mass + loser.vx*loser.mass)/tm;
-            winner.vy = (winner.vy*winner.mass + loser.vy*loser.mass)/tm;
-            winner.mass = tm;
-            winner.radius = Math.max(winner.radius, Math.pow(tm, 1/3)*2.8);
-            loser.destroyed = true;
-            if(selectedObject === loser) deselectObject();
-            if(trackedObject === loser) trackedObject = winner;
-        }
-
-        function pixelateSelected() {
-            if(!selectedObject || selectedObject.type === 'blackhole') return;
-            const obj = selectedObject;
-            const pixelCount = Math.min(3000, Math.floor(obj.mass * 5));
-            for(let i=0; i<pixelCount; i++) {
-                const ang = Math.random()*Math.PI*2, spd = Math.random()*5;
-                objects.push(new CelestialBody(obj.x, obj.y, obj.vx + Math.cos(ang)*spd, obj.vy + Math.sin(ang)*spd, 'dust', { color: obj.color }));
-            }
-            obj.destroyed = true;
-            deselectObject();
-        }
-
-        function drawPrediction() {
-            if (!isDragging) return;
-            const wS = screenToWorld(startPos.x, startPos.y), wE = screenToWorld(currentMousePos.x, currentMousePos.y);
-            const vx = (wS.x - wE.x) * 0.06, vy = (wS.y - wE.y) * 0.06;
-            let temp = { x: wS.x, y: wS.y, vx: vx, vy: vy, mass: types[currentType].mass };
-            ctx.beginPath(); ctx.setLineDash([5, 5]); ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'; ctx.moveTo(temp.x, temp.y);
-            for (let i = 0; i < 200; i++) {
-                for (let other of objects) {
-                    if (other.type === 'dust') continue;
-                    const dx = other.x - temp.x, dy = other.y - temp.y, distSq = dx * dx + dy * dy;
-                    if (distSq < 500) continue;
-                    const dist = Math.sqrt(distSq), force = (G * temp.mass * other.mass) / distSq;
-                    temp.vx += (force * dx / dist / temp.mass) * timeScale; temp.vy += (force * dy / dist / temp.mass) * timeScale;
+            nextRound() {
+                this.currentRound++;
+                if(this.currentRound > this.maxRounds) {
+                    this.currentRound = 1; // Reset für Demo
+                    showView('main-menu');
+                } else {
+                    this.startRound();
                 }
-                temp.x += temp.vx * timeScale; temp.y += temp.vy * timeScale;
-                if (i % 5 === 0) ctx.lineTo(temp.x, temp.y);
             }
-            ctx.stroke(); ctx.setLineDash([]);
-            ctx.beginPath(); ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.moveTo(wS.x, wS.y); ctx.lineTo(wE.x, wE.y); ctx.stroke();
         }
 
-        function mainLoop() {
-            applyPhysics();
-            objects.forEach(o => o.update());
-            if (trackedObject) {
-                camera.x = canvas.width/2 - trackedObject.x * camera.zoom;
-                camera.y = canvas.height/2 - trackedObject.y * camera.zoom;
+        class DotRenderer {
+            constructor(containerId) {
+                this.container = document.getElementById(containerId);
             }
-            STAT_COUNT.innerText = objects.length;
-            STAT_MASS.innerText = Math.round(objects.reduce((s,o) => s+o.mass, 0)).toLocaleString();
-            ctx.setTransform(1,0,0,1,0,0);
-            ctx.clearRect(0,0,canvas.width, canvas.height);
-            ctx.translate(camera.x, camera.y);
-            ctx.scale(camera.zoom, camera.zoom);
-            ctx.beginPath(); ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 10/camera.zoom;
-            ctx.arc(0, 0, UNIVERSE_LIMIT, 0, Math.PI*2); ctx.stroke();
-            nebulae.forEach(n => n.draw());
-            objects.forEach(o => o.draw());
-            if (isDragging) drawPrediction();
-            requestAnimationFrame(mainLoop);
+
+            clear() {
+                this.container.innerHTML = '';
+            }
+
+            drawDots(count) {
+                this.clear();
+                const w = this.container.clientWidth;
+                const h = this.container.clientHeight;
+                const padding = 30;
+
+                for (let i = 0; i < count; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'dot';
+                    
+                    // Zufällige Größe zwischen 8px und 25px
+                    const size = 8 + Math.random() * 17;
+                    dot.style.width = `${size}px`;
+                    dot.style.height = `${size}px`;
+
+                    const x = padding + Math.random() * (w - padding * 2);
+                    const y = padding + Math.random() * (h - padding * 2);
+                    
+                    dot.style.left = `${x}px`;
+                    dot.style.top = `${y}px`;
+                    
+                    this.container.appendChild(dot);
+                }
+            }
         }
 
-        canvas.addEventListener('mousedown', (e) => {
-            const w = screenToWorld(e.clientX, e.clientY);
-            if (e.button === 0) {
-                let f = objects.find(o => o.type !== 'dust' && Math.hypot(o.x-w.x, o.y-w.y) < o.radius + 15/camera.zoom);
-                if (f) selectObject(f); 
-                else { isDragging = true; startPos = {x:e.clientX, y:e.clientY}; currentMousePos = {x:e.clientX, y:e.clientY}; deselectObject(); }
-            } else if (e.button === 2) { isPanning = true; startPos = {x:e.clientX, y:e.clientY}; }
-        });
-        window.addEventListener('mousemove', (e) => {
-            if (isDragging) currentMousePos = {x:e.clientX, y:e.clientY};
-            if (isPanning) { camera.x += e.clientX - startPos.x; camera.y += e.clientY - startPos.y; startPos = {x:e.clientX, y:e.clientY}; trackedObject = null; }
-        });
-        window.addEventListener('mouseup', (e) => {
-            if (e.button === 0 && isDragging) {
-                const wS = screenToWorld(startPos.x, startPos.y), wE = screenToWorld(e.clientX, e.clientY);
-                objects.push(new CelestialBody(wS.x, wS.y, (wS.x-wE.x)*0.06, (wS.y-wE.y)*0.06, currentType));
-                isDragging = false;
+        class UIManager {
+            constructor(eventBus, state) {
+                this.bus = eventBus;
+                this.state = state;
+                
+                // UI Elemente
+                this.roundDisplay = document.getElementById('round-display');
+                this.diffDisplay = document.getElementById('diff-display');
+                this.statusText = document.getElementById('status-text');
+                this.inputArea = document.getElementById('input-area');
+                this.resultArea = document.getElementById('result-area');
+                this.gameArea = document.getElementById('game-area');
+                
+                // Input
+                this.slider = document.getElementById('guess-slider');
+                this.sliderVal = document.getElementById('slider-val');
+                this.submitBtn = document.getElementById('submit-btn');
+                this.nextBtn = document.getElementById('next-btn');
+
+                // Results
+                this.resAcc = document.getElementById('res-acc');
+                this.resActual = document.getElementById('res-actual');
+                this.resGuess = document.getElementById('res-guess');
+                this.resError = document.getElementById('res-error');
+
+                this.renderer = new DotRenderer('game-area');
+
+                this.setupDifficultyMenu();
+                this.bindEvents();
             }
-            isPanning = false;
-        });
-        canvas.addEventListener('wheel', (e) => {
-            const f = Math.pow(1.1, -e.deltaY/150), b = screenToWorld(e.clientX, e.clientY);
-            camera.zoom = Math.max(0.0001, Math.min(50, camera.zoom * f));
-            const a = screenToWorld(e.clientX, e.clientY);
-            camera.x += (a.x - b.x) * camera.zoom; camera.y += (a.y - b.y) * camera.zoom;
-            e.preventDefault();
-        }, { passive: false });
-        canvas.addEventListener('contextmenu', e => e.preventDefault());
 
-        function selectObject(o) { selectedObject = o; EDITOR_PANEL.style.display = 'block'; EDIT_MASS.value = Math.round(o.mass); EDIT_RADIUS.value = Math.round(o.radius); EDIT_COLOR.value = o.color; }
-        function deselectObject() { selectedObject = null; EDITOR_PANEL.style.display = 'none'; }
-        function deleteSelected() { if(selectedObject) selectedObject.destroyed = true; deselectObject(); }
-        function focusOnObject() { if(selectedObject) trackedObject = selectedObject; }
+            setupDifficultyMenu() {
+                const diffList = document.getElementById('difficulty-list');
+                if(!diffList) return;
+                diffList.innerHTML = '';
+                
+                DIFFICULTIES.forEach(diff => {
+                    const card = document.createElement('div');
+                    card.className = `diff-card ${diff.id === 3 ? 'selected' : ''}`;
+                    card.innerHTML = `
+                        <div class="diff-info">
+                            <div class="diff-name" style="color: ${diff.color};">${diff.name}</div>
+                            <div class="diff-desc">${diff.desc}</div>
+                        </div>
+                        <div class="diff-stats">
+                            <div class="diff-range" style="color: ${diff.color};">${diff.minDots}-${diff.maxDots}</div>
+                            <div class="diff-time">${diff.showTimeMs / 1000} seconds <span class="diff-dot" style="background-color: ${diff.color};"></span></div>
+                        </div>
+                    `;
+                    card.onclick = () => {
+                        document.querySelectorAll('.diff-card').forEach(b => b.classList.remove('selected'));
+                        card.classList.add('selected');
+                        this.state.setDifficulty(diff.id);
+                    };
+                    diffList.appendChild(card);
+                });
+            }
 
-        [EDIT_MASS, EDIT_RADIUS, EDIT_COLOR].forEach(el => el.addEventListener('input', () => { if(selectedObject) { selectedObject.mass = +EDIT_MASS.value; selectedObject.radius = +EDIT_RADIUS.value; selectedObject.color = EDIT_COLOR.value; } }));
+            bindEvents() {
+                // Spiel Start Signal
+                document.addEventListener('startClassicGame', () => this.state.startRound());
 
-        mainLoop();
+                // Slider Update
+                this.slider.addEventListener('input', (e) => {
+                    this.sliderVal.textContent = e.target.value;
+                });
+
+                // Buttons
+                this.submitBtn.onclick = () => this.state.checkGuess(parseInt(this.slider.value));
+                this.nextBtn.onclick = () => this.state.nextRound();
+
+                // System Events
+                this.bus.subscribe('round_started', (data) => this.prepareRound(data));
+                this.bus.subscribe('guess_evaluated', (data) => this.showResult(data));
+            }
+
+            prepareRound(data) {
+                // UI Reset
+                this.inputArea.style.display = 'none';
+                this.resultArea.style.display = 'none';
+                this.gameArea.style.display = 'flex';
+                
+                this.roundDisplay.textContent = `Round ${data.round} of ${data.maxRounds}`;
+                this.diffDisplay.textContent = data.diffName;
+                this.statusText.textContent = "WATCH THE SCREEN";
+
+                // Slider Setup
+                this.slider.max = data.maxSlider;
+                this.slider.value = Math.floor(data.maxSlider / 2);
+                this.sliderVal.textContent = this.slider.value;
+
+                // Flash Sequenz
+                this.renderer.clear();
+                setTimeout(() => {
+                    this.renderer.drawDots(data.dotCount);
+                    
+                    setTimeout(() => {
+                        this.renderer.clear();
+                        this.statusText.textContent = "";
+                        this.gameArea.style.display = 'none';
+                        this.inputArea.style.display = 'flex';
+                    }, data.duration);
+
+                }, 800);
+            }
+
+            showResult(data) {
+                this.inputArea.style.display = 'none';
+                this.resultArea.style.display = 'flex';
+                this.gameArea.style.display = 'flex'; // Dots nochmal zeigen zur Kontrolle
+                this.statusText.textContent = "";
+
+                // Renderer ruft intern nochmal drawDots auf, wir zeichnen sie nochmal für den Screenshot-Look
+                this.renderer.drawDots(data.actual);
+
+                // Werte setzen
+                this.resAcc.textContent = `${data.accuracy.toFixed(1)}%`;
+                
+                // Farbe anpassen
+                if(data.accuracy > 90) this.resAcc.style.color = "#4ade80";
+                else if (data.accuracy > 70) this.resAcc.style.color = "#facc15";
+                else this.resAcc.style.color = "#ef4444";
+
+                this.resActual.textContent = data.actual;
+                this.resGuess.textContent = data.guess;
+
+                let errorText = data.difference === 0 ? "0 (perfect)" : 
+                               (data.difference > 0 ? `-${Math.abs(data.difference)} (under)` : `+${Math.abs(data.difference)} (over)`);
+                
+                this.resError.textContent = errorText;
+                
+                this.resError.className = "detail-val";
+                if(data.difference > 0) this.resError.classList.add("val-under");
+                else if (data.difference < 0) this.resError.classList.add("val-over");
+                else this.resError.classList.add("val-perfect");
+            }
+        }
+
+        const initGame = () => {
+            const bus = new GameEventBus();
+            const state = new GameState(bus);
+            const ui = new UIManager(bus, state);
+        };
+
+        document.addEventListener('DOMContentLoaded', initGame);
+
     </script>
 </body>
 </html>
