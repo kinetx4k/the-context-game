@@ -1167,8 +1167,16 @@
         // Local Storage Profile Logic
         const UserProfile = {
             name: "Player1", photo: "", rp: 0, streak: 0, history: [], lastDaily: null, 
+            progress: {}, // New field for gamemode unlock tracking
             save() {
-                localStorage.setItem('dotcore_profile', JSON.stringify({ name: this.name, photo: this.photo, rp: this.rp, streak: this.streak, lastDaily: this.lastDaily }));
+                localStorage.setItem('dotcore_profile', JSON.stringify({ 
+                    name: this.name, 
+                    photo: this.photo, 
+                    rp: this.rp, 
+                    streak: this.streak, 
+                    lastDaily: this.lastDaily,
+                    progress: this.progress 
+                }));
                 localStorage.setItem('dotcore_history', JSON.stringify(this.history));
                 updateHomeScore(); updateDailyCard(); saveGlobalProfile(); 
             },
@@ -1177,11 +1185,17 @@
                 if (p) { 
                     this.name = p.name || "Player1"; 
                     this.photo = p.photo || ""; 
-                    const resetKey = "dotcore_reset_v3_balanced";
+                    // Changed resetKey to trigger the rank and unlock reset as requested
+                    const resetKey = "dotcore_reset_v4_manual_wipe";
                     if (!localStorage.getItem(resetKey)) {
-                        this.rp = 0; this.streak = 0; this.lastDaily = null; localStorage.setItem(resetKey, "done");
+                        this.rp = 0; 
+                        this.progress = {}; // Reset unlocks
+                        localStorage.setItem(resetKey, "done");
                     } else {
-                        this.rp = p.rp || 0; this.streak = p.streak || 0; this.lastDaily = p.lastDaily || null; 
+                        this.rp = p.rp || 0; 
+                        this.streak = p.streak || 0; 
+                        this.lastDaily = p.lastDaily || null; 
+                        this.progress = p.progress || {};
                     }
                 }
                 const h = JSON.parse(localStorage.getItem('dotcore_history'));
@@ -1189,7 +1203,10 @@
                 updateHomeScore(); updateDailyCard();
             },
             addRoundResult(actual, guess, accuracy, diffId) {
-                this.history.push({ actual, guess, accuracy, diffId }); this.save();
+                this.history.push({ actual, guess, accuracy, diffId }); 
+                // Increment unlock progress
+                this.progress[diffId] = (this.progress[diffId] || 0) + 1;
+                this.save();
             }
         };
 
@@ -1525,14 +1542,11 @@
             setupDifficultyMenu() {
                 const diffList = document.getElementById('difficulty-list'); if(!diffList) return; diffList.innerHTML = '';
                 
-                let countByDiff = {}; 
-                UserProfile.history.forEach(r => { 
-                    countByDiff[r.diffId] = (countByDiff[r.diffId] || 0) + 1; 
-                });
-                
+                // --- UPDATED UNLOCK LOGIC: USE UserProfile.progress INSTEAD OF history ---
                 let highestUnlocked = 1;
                 DIFFICULTIES.forEach((diff, index) => {
-                    const roundsPlayedInPrev = (countByDiff[diff.id - 1] || 0);
+                    // Check rounds from previous difficulty stored in the reset-safe progress field
+                    const roundsPlayedInPrev = (UserProfile.progress[diff.id - 1] || 0);
                     let isLocked = diff.id > 1 && roundsPlayedInPrev < 15; 
                     
                     if (!isLocked) highestUnlocked = diff.id;
