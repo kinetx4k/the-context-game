@@ -330,27 +330,8 @@
             animation: popIn 0.2s forwards;
         }
 
-        /* Expert & Inhuman Animations */
-        .dot.floating {
-            animation: float 4s ease-in-out infinite alternate;
-        }
-
-        .dot.pulsing {
-            animation: pulse 2s ease-in-out infinite alternate;
-        }
-
         @keyframes popIn {
             to { transform: scale(1); }
-        }
-
-        @keyframes float {
-            from { transform: translate(0, 0); }
-            to { transform: translate(15px, 15px); }
-        }
-
-        @keyframes pulse {
-            from { transform: scale(0.7); }
-            to { transform: scale(1.4); }
         }
 
         .status-text {
@@ -1086,7 +1067,7 @@
         async function renderLeaderboard() {
             const list = document.getElementById('leaderboard-list');
             const category = document.getElementById('leaderboard-category').value;
-            list.innerHTML = '<div style="color:var(--text-muted); text-align:center;">Loading Global Players...</div>';
+            list.innerHTML = '<div style="color:var(--text-muted); text-align:center;">Loading Players...</div>';
             
             const seedStr = new Date().toISOString().split('T')[0];
 
@@ -1397,7 +1378,6 @@
                     round: this.currentRound,
                     maxRounds: this.maxRounds,
                     diffName: this.currentDifficulty.name,
-                    diffId: this.currentDifficulty.id,
                     dotCount: this.actualDotCount,
                     duration: this.currentDifficulty.showTimeMs,
                     minSlider: min,
@@ -1423,8 +1403,7 @@
                     guess: guess,
                     actual: actual,
                     difference: difference,
-                    accuracy: accuracy,
-                    diffId: this.currentDifficulty.id
+                    accuracy: accuracy
                 });
             }
 
@@ -1470,14 +1449,11 @@
                 if(bar) this.container.appendChild(bar);
             }
 
-            drawDots(count, diffId) {
+            drawDots(count) {
                 this.clear();
                 const w = this.container.clientWidth;
                 const h = this.container.clientHeight;
                 const padding = 30;
-
-                // Color palette for Hard+ level
-                const dotColors = ['#f97316', '#38bdf8', '#4ade80', '#facc15', '#f43f5e', '#a855f7'];
 
                 for (let i = 0; i < count; i++) {
                     const dot = document.createElement('div');
@@ -1492,21 +1468,6 @@
                     
                     dot.style.left = `${x}px`;
                     dot.style.top = `${y}px`;
-
-                    // Application of visual effects requested by user
-                    if (diffId >= 4) {
-                        dot.style.backgroundColor = dotColors[Math.floor(this.rng() * dotColors.length)];
-                    }
-                    if (diffId === 5) {
-                        dot.classList.add('floating');
-                        // Random delay for floating so they don't move in sync
-                        dot.style.animationDelay = `${this.rng() * 4}s`;
-                    }
-                    if (diffId === 6) {
-                        dot.classList.add('pulsing');
-                        // Random delay for pulsing
-                        dot.style.animationDelay = `${this.rng() * 2}s`;
-                    }
                     
                     this.container.appendChild(dot);
                 }
@@ -1705,7 +1666,7 @@
 
                 this.renderer.clear();
                 setTimeout(() => {
-                    this.renderer.drawDots(data.dotCount, data.diffId);
+                    this.renderer.drawDots(data.dotCount);
                     
                     this.progressBar.style.display = 'block';
                     this.timerSystem.startProgressBar(this.progressBar, data.duration, () => {
@@ -1729,7 +1690,7 @@
                 this.gameArea.style.display = 'flex'; 
                 this.statusText.textContent = "";
 
-                this.renderer.drawDots(data.actual, data.diffId);
+                this.renderer.drawDots(data.actual);
 
                 if(data.accuracy > 90) this.resAcc.style.color = "#4ade80";
                 else if (data.accuracy > 70) this.resAcc.style.color = "#facc15";
