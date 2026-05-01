@@ -468,6 +468,20 @@
         }
 
         /* RANKS */
+        .rank-select {
+            background: #0b0e14;
+            color: white;
+            border: 1px solid var(--card-border);
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 1rem;
+            margin-top: 15px;
+            width: 100%;
+            max-width: 300px;
+            cursor: pointer;
+            outline: none;
+        }
+
         .leaderboard {
             width: 100%;
             max-width: 600px;
@@ -643,8 +657,18 @@
     <!-- RANKS VIEW -->
     <div id="ranks-view" class="view-container">
         <div class="page-header">
-            <h2>Daily Leaderboard</h2>
-            <p style="color: var(--text-muted);">Top players of today's challenge</p>
+            <h2>Leaderboards</h2>
+            <select id="leaderboard-category" class="rank-select">
+                <option value="daily">Daily Challenge</option>
+                <option value="elo">Total ELO</option>
+                <option value="avg">Global Average Score</option>
+                <option value="diff_1">Classic: Beginner</option>
+                <option value="diff_2">Classic: Easy</option>
+                <option value="diff_3">Classic: Medium</option>
+                <option value="diff_4">Classic: Hard</option>
+                <option value="diff_5">Classic: Expert</option>
+                <option value="diff_6">Classic: Inhuman</option>
+            </select>
         </div>
         <div class="leaderboard" id="leaderboard-list">
             <div style="color:var(--text-muted); text-align:center;">Loading Real Players...</div>
@@ -810,7 +834,7 @@
         const submitDailyScore = async (acc) => {
             if (!currentUser || !db) return;
             try {
-                // Determine today's challenge seed for document grouping (optional, but good for real apps)
+                // Determine today's challenge seed for document grouping
                 const today = new Date();
                 const seedStr = `${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}`;
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', `daily_${seedStr}`, currentUser.uid);
@@ -823,6 +847,41 @@
                 });
             } catch (e) {
                 console.error("Leaderboard Error", e);
+            }
+        };
+
+        const saveGlobalProfile = async () => {
+            if (!currentUser || !db) return;
+            try {
+                // Determine best accuracies per difficulty from history
+                let diffBests = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+                let avg = 0;
+                
+                if (UserProfile.history.length > 0) {
+                    avg = UserProfile.history.reduce((a, b) => a + b.accuracy, 0) / UserProfile.history.length;
+                    UserProfile.history.forEach(r => {
+                        if (r.diffId && r.accuracy > diffBests[r.diffId]) {
+                            diffBests[r.diffId] = r.accuracy;
+                        }
+                    });
+                }
+
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'global_stats', currentUser.uid);
+                await setDoc(docRef, {
+                    name: UserProfile.name,
+                    photo: UserProfile.photo,
+                    elo: UserProfile.elo,
+                    avg: avg,
+                    diff_1: diffBests[1],
+                    diff_2: diffBests[2],
+                    diff_3: diffBests[3],
+                    diff_4: diffBests[4],
+                    diff_5: diffBests[5],
+                    diff_6: diffBests[6],
+                    timestamp: Date.now()
+                });
+            } catch (e) {
+                console.error("Global Profile Save Error", e);
             }
         };
 
@@ -853,6 +912,11 @@
         });
         document.getElementById('stats-btn-home').addEventListener('click', () => showView('main-menu'));
 
+        // Handle category change in Ranks view
+        document.getElementById('leaderboard-category').addEventListener('change', () => {
+            renderLeaderboard();
+        });
+
 
         /**
          * ---------------------------------------------------------
@@ -863,12 +927,13 @@
             name: "Player1",
             photo: "", // Base64
             elo: 1000,
-            history: [], // Stores objects { round, actual, guess, accuracy }
+            history: [], // Stores objects { round, actual, guess, accuracy, diffId }
             
             save() {
                 localStorage.setItem('dotcore_profile', JSON.stringify({name: this.name, photo: this.photo, elo: this.elo}));
                 localStorage.setItem('dotcore_history', JSON.stringify(this.history));
                 updateHomeScore();
+                saveGlobalProfile(); // Sync to cloud
             },
             load() {
                 const p = JSON.parse(localStorage.getItem('dotcore_profile'));
@@ -877,8 +942,8 @@
                 if (h) this.history = h;
                 updateHomeScore();
             },
-            addRoundResult(actual, guess, accuracy) {
-                this.history.push({ actual, guess, accuracy });
+            addRoundResult(actual, guess, accuracy, diffId) {
+                this.history.push({ actual, guess, accuracy, diffId });
                 this.save();
             }
         };
@@ -925,9 +990,10 @@
             profilePreview.innerHTML = "";
         }
 
-        // Ranks View Logic (Real Database)
+        // Ranks View Logic (Real Database Multiple Categories)
         async function renderLeaderboard() {
             const list = document.getElementById('leaderboard-list');
+            const category = document.getElementById('leaderboard-category').value;
             list.innerHTML = '<div style="color:var(--text-muted); text-align:center;">Loading Real Players...</div>';
             
             if (!currentUser || !db) {
@@ -936,21 +1002,33 @@
             }
 
             try {
-                const today = new Date();
-                const seedStr = `${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}`;
-                
-                // Fetch real players from Firestore
-                const querySnapshot = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', `daily_${seedStr}`));
                 let players = [];
-                querySnapshot.forEach((doc) => {
-                    players.push({ id: doc.id, ...doc.data() });
-                });
+                let sortKey = 'acc';
                 
-                // Sort by accuracy (Highest First)
-                players.sort((a,b) => b.acc - a.acc);
+                if (category === 'daily') {
+                    const today = new Date();
+                    const seedStr = `${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}`;
+                    const querySnapshot = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', `daily_${seedStr}`));
+                    querySnapshot.forEach((doc) => {
+                        players.push({ id: doc.id, ...doc.data() });
+                    });
+                    sortKey = 'acc';
+                } else {
+                    const querySnapshot = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'global_stats'));
+                    querySnapshot.forEach((doc) => {
+                        players.push({ id: doc.id, ...doc.data() });
+                    });
+                    sortKey = category; // This maps directly to 'elo', 'avg', 'diff_1', etc.
+                }
+                
+                // Filter out scores that are 0 or missing for the requested category
+                players = players.filter(p => p[sortKey] && p[sortKey] > 0);
+                
+                // Sort by accuracy or ELO (Highest First)
+                players.sort((a,b) => b[sortKey] - a[sortKey]);
                 
                 if(players.length === 0) {
-                    list.innerHTML = '<div style="color:var(--text-muted); text-align:center;">No runs completed today. Be the first!</div>';
+                    list.innerHTML = '<div style="color:var(--text-muted); text-align:center;">No players found for this category yet. Be the first!</div>';
                     return;
                 }
 
@@ -963,13 +1041,19 @@
                     
                     const imgStyle = p.photo ? `background-image: url(${p.photo});` : '';
                     
+                    // Format score appropriately
+                    let displayScore = p[sortKey];
+                    if (sortKey !== 'elo') {
+                        displayScore = displayScore.toFixed(1) + '%';
+                    }
+                    
                     row.innerHTML = `
                         <div class="rank-pos">#${idx+1}</div>
                         <div class="rank-name">
                             <div class="rank-img" style="${imgStyle}"></div>
                             <span style="${isMe ? 'color: var(--accent-color); font-weight: bold;' : ''}">${p.name || 'Anonymous'} ${isMe ? '(You)' : ''}</span>
                         </div>
-                        <div class="rank-score">${p.acc.toFixed(1)}%</div>
+                        <div class="rank-score">${displayScore}</div>
                     `;
                     list.appendChild(row);
                 });
@@ -1043,7 +1127,7 @@
                 const eloChange = Math.round((avg - 75) * diffMultiplier * 2);
                 
                 UserProfile.elo = Math.max(0, UserProfile.elo + eloChange); // No negative ELO
-                UserProfile.save();
+                UserProfile.save(); // Also updates global profile
                 
                 const sign = eloChange >= 0 ? '+' : '';
                 eloChangeText = ` (${sign}${eloChange})`;
@@ -1178,9 +1262,9 @@
 
                 this.isPlaying = false;
                 
-                // Track internally and globally
+                // Track internally and globally (passing difficulty ID)
                 this.sessionHistory.push({ actual, guess, accuracy });
-                UserProfile.addRoundResult(actual, guess, accuracy);
+                UserProfile.addRoundResult(actual, guess, accuracy, this.currentDifficulty.id);
                 
                 this.bus.publish('guess_evaluated', {
                     guess: guess,
